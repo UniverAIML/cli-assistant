@@ -1,0 +1,79 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Install Dependencies",
+			"type": "shell",
+			"command": "poetry",
+			"args": [
+				"install"
+			],
+			"group": "build",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Run CLI Assistant",
+			"type": "shell",
+			"command": "poetry",
+			"args": [
+				"run",
+				"cli-assistant"
+			],
+			"group": "build",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Run Tests",
+			"type": "shell",
+			"command": "poetry",
+			"args": [
+				"run",
+				"pytest",
+				"-v"
+			],
+			"group": "test",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Format Code",
+			"type": "shell",
+			"command": "poetry",
+			"args": [
+				"run",
+				"black",
+				"."
+			],
+			"group": "build",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Check Types",
+			"type": "shell",
+			"command": "poetry",
+			"args": [
+				"run",
+				"mypy",
+				"src/"
+			],
+			"group": "build",
+			"isBackground": false,
+			"problemMatcher": ["$python"]
+		},
+		{
+			"label": "Virtual Environment Info",
+			"type": "shell",
+			"command": "poetry",
+			"args": [
+				"env",
+				"info"
+			],
+			"group": "build",
+			"isBackground": false,
+			"problemMatcher": []
+		}
+	]
+}
