@@ -95,13 +95,7 @@ poetry env list
 poetry env remove python
 ```
 
-### VS Code Tasks
-The project includes VS Code tasks for common operations:
-- **Install Dependencies**: `Ctrl+Shift+P` → "Tasks: Run Task" → "Install Dependencies"
-- **Run CLI Assistant**: `Ctrl+Shift+P` → "Tasks: Run Task" → "Run CLI Assistant"
-- **Run Tests**: `Ctrl+Shift+P` → "Tasks: Run Task" → "Run Tests"
-- **Format Code**: `Ctrl+Shift+P` → "Tasks: Run Task" → "Format Code"
-- **Check Types**: `Ctrl+Shift+P` → "Tasks: Run Task" → "Check Types"
+### code ~/.zshrc
 
 ## Project Structure
 
