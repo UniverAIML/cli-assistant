@@ -5,7 +5,7 @@
             "name": "Run CLI Assistant",
             "type": "debugpy",
             "request": "launch",
-            "program": "${workspaceFolder}/src/cli_assistant/main.py",
+            "module": "cli_assistant.main",
             "console": "integratedTerminal",
             "cwd": "${workspaceFolder}",
             "python": "${command:python.interpreterPath}",
