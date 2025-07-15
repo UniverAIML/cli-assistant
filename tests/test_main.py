@@ -18,3 +18,4 @@ def test_main_with_args(capsys):
     captured = capsys.readouterr()
     assert "CLI Assistant v0.1.0" in captured.out
     assert "Received arguments: ['test', 'arg']" in captured.out
+

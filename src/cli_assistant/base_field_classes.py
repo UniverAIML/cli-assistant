@@ -24,7 +24,7 @@ class Name(Field):
         pattern = r"^[a-zA-Z\s\-']{1,100}$"
         if not re.fullmatch(pattern, stripped_value):
             raise ValueError("Name can contain only letters, spaces, hyphens, and apostrophes")
-
+        super().__init__(stripped_value)
 class Phone(Field):
     @staticmethod
     def _validate_phone(phone: str) -> bool:
