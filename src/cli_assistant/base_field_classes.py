@@ -12,15 +12,15 @@ class Field:
 
 class Name(Field):
     def __init__(self, value: str):
-        # Автоматично видаляємо пробіли на початку та в кінці
+        # Auto deleted spases on front and back
         stripped_value = value.strip()
-        # Перевірка на порожній рядок
+        # Check on empty string
         if not stripped_value:
             raise ValueError("Name cannot be empty or whitespace only")
-        # Перевірка довжини
+        # Checking length
         if not (1 <= len(stripped_value) <= 100):
             raise ValueError("Name must be between 1 and 100 characters")
-        # Перевірка на допустимі символи. 
+        # Checking for valid characters.
         pattern = r"^[a-zA-Z\s\-']{1,100}$"
         if not re.fullmatch(pattern, stripped_value):
             raise ValueError("Name can contain only letters, spaces, hyphens, and apostrophes")
@@ -28,7 +28,7 @@ class Name(Field):
 class Phone(Field):
     @staticmethod
     def _validate_phone(phone: str) -> bool:
-        clean_phone = ''.join(filter(str.isdigit, phone)) # Видаляємо всі символи, крім цифр
+        clean_phone = ''.join(filter(str.isdigit, phone)) # Remove non-digit characters
         pattern = r"^\d{10}$"
         return bool(re.fullmatch(pattern, clean_phone))
 
@@ -47,16 +47,16 @@ class Birthday(Field):
             date_obj = datetime.strptime(value, "%d.%m.%Y").date()
         except ValueError:
             day, month, year = map(int, value.split('.'))
-            # Перевірка на 29 лютого
+            # Checking for leap year and 29.02
             if day == 29 and month == 2:
                 from calendar import isleap
                 if not isleap(year):
                     raise ValueError(f"{year} is not a leap year, so 29.02 does not exist")
             raise ValueError("Invalid date format. Use DD.MM.YYYY")
-        # Перевірка, що дата у минулому
+        # Checking that the date is in the past
         if date_obj >= datetime.now().date():
             raise ValueError("Birthday must be in the past")
-        # Перевірка року
+        # Checking the year
         if not (1900 <= date_obj.year <= datetime.now().year - 1):
             raise ValueError("Year must be between 1900 and previous year")
         super().__init__(str(date_obj))
