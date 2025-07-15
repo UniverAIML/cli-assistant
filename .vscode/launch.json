@@ -1,9 +1,36 @@
 {
     "version": "0.2.0",
     "configurations": [
-        
         {
-            "name": "Run CLI Assistant (Poetry)",
+            "name": "Run CLI Assistant",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/src/cli_assistant/main.py",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "python": "${command:python.interpreterPath}",
+            "args": [],
+            "justMyCode": true,
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}/src"
+            }
+        },
+        {
+            "name": "Run CLI Assistant with --help",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/src/cli_assistant/main.py",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "python": "${command:python.interpreterPath}",
+            "args": ["--help"],
+            "justMyCode": true,
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}/src"
+            }
+        },
+        {
+            "name": "Run CLI Assistant (Module)",
             "type": "debugpy",
             "request": "launch",
             "module": "cli_assistant.main",
@@ -15,34 +42,7 @@
             "env": {
                 "PYTHONPATH": "${workspaceFolder}/src"
             }
-        },
-        {
-            "name": "Run Tests",
-            "type": "debugpy",
-            "request": "launch",
-            "module": "pytest",
-            "console": "integratedTerminal",
-            "cwd": "${workspaceFolder}",
-            "python": "${command:python.interpreterPath}",
-            "args": [
-                "tests/",
-                "-v"
-            ],
-            "justMyCode": false
-        },
-        {
-            "name": "Run Current Test File",
-            "type": "debugpy",
-            "request": "launch",
-            "module": "pytest",
-            "console": "integratedTerminal",
-            "cwd": "${workspaceFolder}",
-            "python": "${command:python.interpreterPath}",
-            "args": [
-                "${file}",
-                "-v"
-            ],
-            "justMyCode": false
         }
+        
     ]
 }
