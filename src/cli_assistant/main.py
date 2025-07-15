@@ -3,10 +3,7 @@
 import sys
 from typing import List, Optional
 
-try:
-    from .chat_assistant import ChatAssistant
-except ImportError:
-    from chat_assistant import ChatAssistant
+from .chat_assistant import ChatAssistant
 
 
 def main(args: Optional[List[str]] = None) -> None:
