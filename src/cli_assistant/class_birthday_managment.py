@@ -3,6 +3,9 @@ from typing import Optional
 from cli_assistant.base_field_classes import Birthday
 
 class BirthdayManagementMixin:
+    def __init__(self):
+        self.birthday = None
+        
     def add_birthday(self, birthday: str) -> None:
         self.birthday = Birthday(birthday)
 
@@ -14,7 +17,27 @@ class BirthdayManagementMixin:
             return None
         today = datetime.now().date()
         birthday = self.birthday.date
-        next_birthday = birthday.replace(year=today.year)
+        year = today.year
+        # Спробувати створити наступний день народження у поточному році
+        try:
+            next_birthday = birthday.replace(year=year)
+        except ValueError:
+            # Якщо день не існує (наприклад, 29.02 у невисокосний рік), шукаємо наступний високосний рік
+            while True:
+                year += 1
+                try:
+                    next_birthday = birthday.replace(year=year)
+                    break
+                except ValueError:
+                    continue
         if next_birthday < today:
-            next_birthday = birthday.replace(year=today.year + 1)
+            # Якщо день народження вже був цього року, шукаємо наступний рік
+            year += 1
+            while True:
+                try:
+                    next_birthday = birthday.replace(year=year)
+                    break
+                except ValueError:
+                    year += 1
+                    continue
         return (next_birthday - today).days
