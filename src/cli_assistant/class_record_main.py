@@ -53,5 +53,6 @@ class Record:
         return {
             "name": self.name.value,
             "phones": [p.value for p in getattr(self, "phones", [])],
-            "birthday": getattr(self, "birthday", None).date if getattr(self, "birthday", None) else None
+            "birthday": (birthday_value.date if birthday_value else None)
         }
+        birthday_value = getattr(self, "birthday", None)
