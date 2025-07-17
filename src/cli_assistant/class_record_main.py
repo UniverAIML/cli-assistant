@@ -48,3 +48,10 @@ class Record:
             if p.value == target_phone.value:
                 return p
         return None
+    
+    def to_dict(self):
+        return {
+            "name": self.name.value,
+            "phones": [p.value for p in getattr(self, "phones", [])],
+            "birthday": getattr(self, "birthday", None).date if getattr(self, "birthday", None) else None
+        }
