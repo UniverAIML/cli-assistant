@@ -1,6 +1,7 @@
 """Tests for the main module."""
 
 import pytest
+
 from cli_assistant.main import main
 
 

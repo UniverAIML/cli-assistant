@@ -8,13 +8,13 @@ from .chat_assistant import ChatAssistant
 
 def main(args: Optional[List[str]] = None) -> None:
     """Main entry point for the CLI Assistant application.
-    
+
     Args:
         args: Command line arguments. If None, uses sys.argv[1:]
     """
     if args is None:
         args = sys.argv[1:]
-    
+
     print("CLI Assistant v0.1.0")
     print("A CLI tool for development workflows with AI chat capabilities")
     
