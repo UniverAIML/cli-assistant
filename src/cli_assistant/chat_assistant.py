@@ -37,6 +37,7 @@ class ChatAssistant:
             )
             
             # Create text generation pipeline
+            # Note: When using device_map="auto" with accelerate, we cannot specify device parameter
             self.generator = pipeline(
                 "text-generation",
                 model=self.model,
@@ -44,10 +45,10 @@ class ChatAssistant:
                 max_length=2024,
                 temperature=0.1,
                 do_sample=True,
-                pad_token_id=self.tokenizer.eos_token_id,
-                device=0 if cuda_available else -1  # Explicitly set device
+                pad_token_id=self.tokenizer.eos_token_id
+                # device parameter removed - handled automatically by accelerate when device_map="auto"
             )
-            
+
             print(f"✅ Model loaded successfully on {'GPU' if cuda_available else 'CPU'}!")
             
         except Exception as e:
