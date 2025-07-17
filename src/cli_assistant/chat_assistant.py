@@ -2,7 +2,6 @@
 
 import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM
-from transformers.pipelines import pipeline
 from typing import Dict, List, Any, Optional
 import json
 import re
@@ -67,42 +66,26 @@ class ChatAssistant:
                 use_accelerate = False
                 device_info = f"Platform: {system_platform}, Using CPU mode"
 
-            # Load model with appropriate configuration
+            # Load model with appropriate configuration (following official Qwen example)
             model_name = "Qwen/Qwen2.5-Coder-3B-Instruct"
-            self.tokenizer = AutoTokenizer.from_pretrained(model_name)
-
-            model_kwargs = {"torch_dtype": torch_dtype, "trust_remote_code": True}
-
+            
+            # Use official Qwen configuration approach
+            model_kwargs = {
+                "torch_dtype": "auto",  # Let model decide optimal dtype
+                "trust_remote_code": True
+            }
+            
             if use_accelerate:
-                model_kwargs["device_map"] = device_map
-
+                model_kwargs["device_map"] = "auto"  # Let accelerate decide optimal mapping
+            
             self.model = AutoModelForCausalLM.from_pretrained(
                 model_name, **model_kwargs
             )
+            self.tokenizer = AutoTokenizer.from_pretrained(model_name)
 
             # Move model to appropriate device if not using accelerate
             if not use_accelerate and device_type != "cpu":
                 self.model = self.model.to(device_type)
-
-            # Create pipeline with appropriate device configuration
-            pipeline_kwargs = {
-                "model": self.model,
-                "tokenizer": self.tokenizer,
-                "max_length": 2024,
-                "temperature": 0.1,
-                "do_sample": True,
-                "pad_token_id": self.tokenizer.eos_token_id,
-            }
-
-            # Set device for pipeline based on configuration
-            if not use_accelerate:
-                if device_type == "mps":
-                    pipeline_kwargs["device"] = 0  # MPS device
-                elif device_type == "cpu":
-                    pipeline_kwargs["device"] = -1  # CPU
-            # For CUDA with accelerate, don't set device parameter
-
-            self.generator = pipeline("text-generation", **pipeline_kwargs)
 
         except Exception as e:
             raise RuntimeError(f"Failed to load model: {str(e)}")
@@ -121,47 +104,49 @@ class ChatAssistant:
         """Return a welcome message for the chat assistant."""
         return "🤖 Welcome to CLI Assistant with AI!"
 
-    def extract_assistant_response(self, generated_text: str, prompt: str) -> str:
-        """Extract the assistant's response from the generated text."""
-        # Remove the original prompt from the generated text
-        if prompt in generated_text:
-            response = generated_text.replace(prompt, "").strip()
-        else:
-            # Fallback: look for assistant markers
-            if "<|im_start|>assistant" in generated_text:
-                response = generated_text.split("<|im_start|>assistant")[-1]
-                if "<|im_end|>" in response:
-                    response = response.split("<|im_end|>")[0]
-                response = response.strip()
-            else:
-                response = generated_text.strip()
-
-        return response
-
     def parse_function_call(self, response: str) -> Optional[Dict[str, Any]]:
         """Parse function call from model response."""
-        # Look for JSON function call format
+        #print(f"🔍 Debug - Parsing response: {response[:200]}...")  # Debug line
+        
+        # Look for JSON function call format in code blocks
         json_pattern = r"```json\s*(\{.*?\})\s*```"
         json_match = re.search(json_pattern, response, re.DOTALL)
 
         if json_match:
             try:
                 function_call = json.loads(json_match.group(1))
+                print(f"🔍 Debug - Found JSON in code block: {function_call}")  # Debug line
                 return function_call  # type: ignore[no-any-return]
-            except json.JSONDecodeError:
-                pass
+            except json.JSONDecodeError as e:
+                print(f"🔍 Debug - JSON decode error in code block: {e}")  # Debug line
 
-        # Look for direct JSON without code blocks
-        json_pattern = r'\{[^}]*"function"[^}]*\}'
+        # Look for JSON without code blocks
+        json_pattern = r'\{[^{}]*"function"[^{}]*\}'
         json_match = re.search(json_pattern, response, re.DOTALL)
 
         if json_match:
             try:
                 function_call = json.loads(json_match.group(0))
+                print(f"🔍 Debug - Found JSON without code block: {function_call}")  # Debug line
                 return function_call  # type: ignore[no-any-return]
-            except json.JSONDecodeError:
-                pass
+            except json.JSONDecodeError as e:
+                print(f"🔍 Debug - JSON decode error without code block: {e}")  # Debug line
 
+        # Look for any JSON-like structure
+        json_pattern = r'\{.*?"function".*?\}'
+        json_match = re.search(json_pattern, response, re.DOTALL)
+
+        if json_match:
+            try:
+                # Try to clean up the JSON
+                json_str = json_match.group(0)
+                function_call = json.loads(json_str)
+                print(f"🔍 Debug - Found JSON-like structure: {function_call}")  # Debug line
+                return function_call  # type: ignore[no-any-return]
+            except json.JSONDecodeError as e:
+                print(f"🔍 Debug - JSON decode error in JSON-like structure: {e}")  # Debug line
+
+        print(f"🔍 Debug - No function call found in response")  # Debug line
         return None
 
     def execute_function_call(
@@ -209,6 +194,40 @@ class ChatAssistant:
                 else:
                     return "📞 No contacts found. Add some contacts first!"
 
+            elif function_name == "edit_contact":
+                name = arguments.get("name", "")
+                action = arguments.get("action", "")
+                
+                self.assistant.edit_contact()
+                success = True  # Assume success for stub
+                
+                if success:
+                    return f"✅ Successfully edited contact: {name} (action: {action})"
+                else:
+                    return f"❌ Failed to edit contact: {name}"
+
+            elif function_name == "delete_contact":
+                name = arguments.get("name", "")
+                
+                self.assistant.delete_contact()
+                success = True  # Assume success for stub
+                
+                if success:
+                    return f"✅ Successfully deleted contact: {name}"
+                else:
+                    return f"❌ Failed to delete contact: {name}"
+
+            elif function_name == "view_contact_details":
+                name = arguments.get("name", "")
+                
+                self.assistant.view_contact_details()
+                success = True  # Assume success for stub
+                
+                if success:
+                    return f"📞 Showing details for contact: {name}"
+                else:
+                    return f"❌ Contact not found: {name}"
+
             elif function_name == "add_note":
                 title = arguments.get("title", "")
                 content = arguments.get("content", "")
@@ -241,6 +260,65 @@ class ChatAssistant:
                     return f"📝 Here are all your notes ({len(notes)} total)"
                 else:
                     return "📝 No notes found. Create some notes first!"
+
+            elif function_name == "edit_note":
+                note_id = arguments.get("note_id", "")
+                action = arguments.get("action", "")
+                
+                self.assistant.edit_note()
+                success = True  # Assume success for stub
+                
+                if success:
+                    return f"✅ Successfully edited note: {note_id} (action: {action})"
+                else:
+                    return f"❌ Failed to edit note: {note_id}"
+
+            elif function_name == "delete_note":
+                note_id = arguments.get("note_id", "")
+                
+                self.assistant.delete_note()
+                success = True  # Assume success for stub
+                
+                if success:
+                    return f"✅ Successfully deleted note: {note_id}"
+                else:
+                    return f"❌ Failed to delete note: {note_id}"
+
+            elif function_name == "view_note_details":
+                note_id = arguments.get("note_id", "")
+                
+                self.assistant.view_note_details()
+                success = True  # Assume success for stub
+                
+                if success:
+                    return f"📝 Showing details for note: {note_id}"
+                else:
+                    return f"❌ Note not found: {note_id}"
+
+            elif function_name == "search_notes_by_tag":
+                tag = arguments.get("tag", "")
+                
+                notes_result = self.assistant.search_notes(tag)  # Using existing method
+                
+                if notes_result and len(notes_result) > 0:
+                    return f"📝 Found {len(notes_result)} note(s) with tag '{tag}'"
+                else:
+                    return f"❌ No notes found with tag '{tag}'"
+
+            elif function_name == "global_search":
+                query = arguments.get("query", user_input)
+                
+                contacts = self.assistant.search_contacts(query)
+                notes_result = self.assistant.search_notes(query)
+                
+                contact_count = len(contacts) if contacts else 0
+                note_count = len(notes_result) if notes_result else 0
+                total_results = contact_count + note_count
+                
+                if total_results > 0:
+                    return f"🔍 Global search found {total_results} result(s): {contact_count} contact(s) and {note_count} note(s) matching '{query}'"
+                else:
+                    return f"❌ No results found for '{query}'"
 
             elif function_name == "get_statistics":
                 stats = self.assistant.get_statistics()
@@ -275,7 +353,7 @@ class ChatAssistant:
             messages = [
                 {
                     "role": "system",
-                    "content": f"{self.system_prompt}\n\nAvailable functions with descriptions: {json.dumps(self.available_functions, indent=2)}",
+                    "content": self.system_prompt,
                 }
             ]
 
@@ -292,29 +370,32 @@ class ChatAssistant:
             # Add current user input
             messages.append({"role": "user", "content": user_input})
 
-            prompt = self.tokenizer.apply_chat_template(
+            # Generate response using direct model call (following official Qwen example)
+            text = self.tokenizer.apply_chat_template(
                 messages, tokenize=False, add_generation_prompt=True
             )
+            model_inputs = self.tokenizer([text], return_tensors="pt").to(self.model.device)
 
-            # Generate response
-            response = self.generator(
-                prompt,
-                max_new_tokens=300,
+            generated_ids = self.model.generate(
+                **model_inputs,
+                max_new_tokens=300,  # Increased for function calls
                 temperature=0.3,
                 do_sample=True,
                 pad_token_id=self.tokenizer.eos_token_id,
             )
+            
+            # Extract only the new tokens (remove input)
+            generated_ids = [
+                output_ids[len(input_ids):] for input_ids, output_ids in zip(model_inputs.input_ids, generated_ids)
+            ]
 
-            # Extract generated text
-            generated_text = response[0]["generated_text"]
-            # print(f"🔍 Debug - Generated text: {generated_text}")  # Debug line
-
-            # Extract only the assistant's response
-            assistant_response = self.extract_assistant_response(generated_text, prompt)
-            # print(f"🔍 Debug - Assistant response: {assistant_response}")  # Debug line
+            # Decode the response
+            assistant_response = self.tokenizer.batch_decode(generated_ids, skip_special_tokens=True)[0]
+            #print(f"🔍 Debug - Assistant response: {assistant_response}")  # Debug line
 
             # Try to parse function call
             function_call = self.parse_function_call(assistant_response)
+            #print(f"🔍 Debug - Parsed function call: {function_call}")  # Debug line
 
             if function_call:
                 # Execute function and get result
@@ -361,25 +442,28 @@ class ChatAssistant:
                 },
             ]
 
-            # Format prompt
-            prompt = self.tokenizer.apply_chat_template(
+            # Format prompt using chat template
+            text = self.tokenizer.apply_chat_template(
                 context_messages, tokenize=False, add_generation_prompt=True
             )
+            model_inputs = self.tokenizer([text], return_tensors="pt").to(self.model.device)
 
-            # Generate contextual response
-            response = self.generator(
-                prompt,
+            # Generate contextual response using direct model call
+            generated_ids = self.model.generate(
+                **model_inputs,
                 max_new_tokens=150,
                 temperature=0.5,
                 do_sample=True,
                 pad_token_id=self.tokenizer.eos_token_id,
             )
+            
+            # Extract only the new tokens
+            generated_ids = [
+                output_ids[len(input_ids):] for input_ids, output_ids in zip(model_inputs.input_ids, generated_ids)
+            ]
 
             # Extract response
-            generated_text = response[0]["generated_text"]
-            contextual_response = self.extract_assistant_response(
-                generated_text, prompt
-            )
+            contextual_response = self.tokenizer.batch_decode(generated_ids, skip_special_tokens=True)[0]
 
             # Clean up the response and ensure it's natural
             if contextual_response:

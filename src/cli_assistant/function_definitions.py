@@ -6,25 +6,34 @@ from typing import Dict, Any
 class FunctionDefinitions:
     """Class containing system prompts and function definitions for the Chat Assistant."""
 
-    SYSTEM_PROMPT = """You are a helpful CLI assistant that manages contacts and notes using function calling capabilities. 
-You can understand natural language commands and help users with:
-- Contact management (add, search, edit, delete contacts)
-- Note management (create, find, organize notes)
-- Birthday tracking
-- Statistics and reports
+    SYSTEM_PROMPT = """You are a helpful CLI assistant that manages contacts and notes. When a user asks you to perform an action, respond with a JSON function call in this exact format:
 
-When users ask you to perform actions, use the available functions to execute them. Be conversational and helpful.
-If users ask for help, provide information about available commands.
-If users greet you, respond warmly and offer assistance.
+ALWAYS TRY CALL THE TOOL WITHOUT ANY ADDITIONAL TEXT OR EXPLANATION.
+USE ONLY AVAILABLE FUNCTIONS:
+add_contact,search_contacts,show_contacts,edit_contact,delete_contact,view_contact_details,get_upcoming_birthdays,get_statistics,add_note,search_notes,show_notes,edit_note,delete_note,view_note_details,search_notes_by_tag,global_search
 
-Available functions: add_contact, search_contacts, add_note, search_notes, show_contacts, show_notes, get_upcoming_birthdays, get_statistics
+
+RESPONSE:
+```json
+{
+    "function": "function_name",
+    "arguments": {
+        "key": "value"
+    }
+}
+```
 
 Examples:
-- User: "add a contact for ..." -> Use add_contact function
-- User: "show all contacts" -> Use show_contacts function  
-- User: "find notes about meeting" -> Use search_notes function
-- User: "hello" -> Respond with a friendly greeting
-- User: "help" -> Provide help information about commands"""
+User: "add contact John Doe"
+Response: ```json
+{
+    "function": "add_contact",
+    "arguments": {
+        "name": "John Doe"
+    }
+}
+```
+Always respond with the appropriate JSON function call when the user requests an action."""
 
     HELP_MESSAGE = """
 🤖 **CLI Assistant with AI Help**
