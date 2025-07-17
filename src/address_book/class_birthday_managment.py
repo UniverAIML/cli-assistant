@@ -1,11 +1,13 @@
 from datetime import datetime, timedelta
 from typing import Optional
-from cli_assistant.base_field_classes import Birthday
+
+from .base_field_classes import Birthday
+
 
 class BirthdayManagementMixin:
-    def __init__(self):
-        self.birthday = None
-        
+    def __init__(self) -> None:
+        self.birthday: Optional[Birthday] = None
+
     def add_birthday(self, birthday: str) -> None:
         self.birthday = Birthday(birthday)
 
@@ -40,4 +42,4 @@ class BirthdayManagementMixin:
                 except ValueError:
                     year += 1
                     continue
-        return (next_birthday - today).days
+        return int((next_birthday - today).days)

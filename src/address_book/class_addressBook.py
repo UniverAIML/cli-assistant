@@ -1,10 +1,13 @@
 from collections import UserDict
-from typing import Dict, List, Optional, Any
 from datetime import date, timedelta
-from cli_assistant.class_record_main import Record
+from typing import Any, Dict, List, Optional
+
+from .class_record_main import Record, ContactData
+
 
 def normalize_name(name: str) -> str:
     return name.strip().lower()
+
 
 class AddressBook(UserDict):
     def add_record(self, record: Record) -> None:
@@ -34,7 +37,10 @@ class AddressBook(UserDict):
             if query_norm in key:
                 results.append(record)
         # Fuzzy search: sort by similarity (simple ratio)
-        results.sort(key=lambda r: self._similarity(query_norm, normalize_name(r.name.value)), reverse=True)
+        results.sort(
+            key=lambda r: self._similarity(query_norm, normalize_name(r.name.value)),
+            reverse=True,
+        )
         return results
 
     def _similarity(self, a: str, b: str) -> float:
@@ -43,11 +49,11 @@ class AddressBook(UserDict):
         return matches / max(len(a), len(b), 1)
 
     def search_by_phone(self, phone: str) -> Optional[Record]:
-        normalized_phone = ''.join(filter(str.isdigit, phone))
+        normalized_phone = "".join(filter(str.isdigit, phone))
         for record in self.data.values():
             for p in record.phones:
                 if p.value == normalized_phone:
-                    return record
+                    return record  # type: ignore
         return None
 
     def search_contacts(self, query: str) -> List[Record]:
@@ -57,7 +63,12 @@ class AddressBook(UserDict):
         if phone_result and phone_result not in results:
             results.append(phone_result)
         # Sort by relevance (name similarity first)
-        results.sort(key=lambda r: self._similarity(normalize_name(query), normalize_name(r.name.value)), reverse=True)
+        results.sort(
+            key=lambda r: self._similarity(
+                normalize_name(query), normalize_name(r.name.value)
+            ),
+            reverse=True,
+        )
         return results
 
     def get_upcoming_birthdays(self, days: int = 7) -> List[Dict[str, Any]]:
@@ -72,11 +83,13 @@ class AddressBook(UserDict):
                     weekday = next_bday.weekday()
                     if weekday >= 5:
                         next_bday += timedelta(days=(7 - weekday))
-                    upcoming.append({
-                        "name": record.name.value,
-                        "birthday": str(next_bday),
-                        "days_until": (next_bday - today).days
-                    })
+                    upcoming.append(
+                        {
+                            "name": record.name.value,
+                            "birthday": str(next_bday),
+                            "days_until": (next_bday - today).days,
+                        }
+                    )
         upcoming.sort(key=lambda x: x["days_until"])
         return upcoming
 
@@ -107,11 +120,11 @@ class AddressBook(UserDict):
         return {
             "total_contacts": total,
             "with_phones": with_phones,
-            "with_birthdays": with_birthdays
+            "with_birthdays": with_birthdays,
         }
 
     def get_phone_stats(self) -> Dict[str, int]:
-        stats = {}
+        stats: Dict[str, int] = {}
         for r in self.data.values():
             for p in r.phones:
                 stats[p.value] = stats.get(p.value, 0) + 1
@@ -128,3 +141,7 @@ class AddressBook(UserDict):
 
     def clear(self) -> None:
         self.data.clear()
+
+    def to_typed_dict(self) -> Dict[str, ContactData]:
+        """Return the entire address book as mapping name -> ContactData."""
+        return {name: record.to_typed_dict() for name, record in self.data.items()}
