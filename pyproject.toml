@@ -6,10 +6,13 @@ authors = [
     {name = "Univer AI ML"}
 ]
 readme = "README.md"
-requires-python = ">=3.13,<3.14"
+requires-python = ">=3.9,<3.14"
 dependencies = [
-    "spacy (>=3.8.7,<4.0.0)",
-    "en-core-web-sm @ https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl"
+    "transformers>=4.50.0",
+    "tokenizers>=0.19.0",
+    "numpy>=1.24.0,<2.0",
+    "regex>=2023.12.25",
+    "torchvision (>=0.22.1,<0.23.0)"
 ]
 
 [build-system]
@@ -20,7 +23,13 @@ build-backend = "poetry.core.masonry.api"
 packages = [{include = "cli_assistant", from = "src"}]
 
 [tool.poetry.dependencies]
-python = ">=3.13,<3.14"
+python = ">=3.9,<3.14"
+torch = {version = ">=2.1.0", source = "pytorch-gpu"}
+transformers = ">=4.50.0"
+tokenizers = ">=0.19.0"
+numpy = ">=1.24.0,<2.0"
+regex = ">=2023.12.25"
+accelerate = ">=1.9.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.0.0"
@@ -32,16 +41,27 @@ mypy = "^1.8.0"
 [tool.poetry.scripts]
 cli-assistant = "cli_assistant.main:main"
 
+[[tool.poetry.source]]
+name = "pytorch-gpu"
+url = "https://download.pytorch.org/whl/cu121"
+priority = "explicit"
+
+
+
+[[tool.poetry.source]]
+name = "PyPI"
+priority = "primary"
+
 [tool.black]
 line-length = 88
-target-version = ['py313']
+target-version = ['py39', 'py310', 'py311', 'py312', 'py313']
 
 [tool.isort]
 profile = "black"
 multi_line_output = 3
 
 [tool.mypy]
-python_version = "3.13"
+python_version = "3.9"
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = true

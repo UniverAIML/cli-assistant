@@ -51,7 +51,7 @@ Commands:
   help, -h, --help    Show this help message
 
 Chat Mode:
-  The assistant uses spaCy for natural language processing.
+  The assistant uses Qwen2-0.5B transformer model for natural language processing.
   You can ask questions, request text analysis, or just chat!
   
   Available chat commands:
