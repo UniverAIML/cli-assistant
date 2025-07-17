@@ -15,9 +15,6 @@ def main(args: Optional[List[str]] = None) -> None:
     if args is None:
         args = sys.argv[1:]
 
-    print("CLI Assistant v0.1.0")
-    print("A CLI tool for development workflows with AI chat capabilities")
-    
     # If no arguments or --chat argument, start chat mode
     if not args or (args and args[0] in ["chat", "--chat", "-c"]):
         try:
@@ -30,12 +27,12 @@ def main(args: Optional[List[str]] = None) -> None:
         except Exception as e:
             print(f"Unexpected error: {e}")
             return
-    
+
     # Handle help command
     if args[0] in ["--help", "-h", "help"]:
         print_help()
         return
-    
+
     # TODO: Implement other command handling
     print(f"Command '{args[0]}' not recognized.")
     print("Use 'cli-assistant --help' for available commands.")
@@ -51,7 +48,7 @@ Commands:
   help, -h, --help    Show this help message
 
 Chat Mode:
-  The assistant uses Qwen2-0.5B transformer model for natural language processing.
+  The assistant uses transformer model for natural language processing.
   You can ask questions, request text analysis, or just chat!
   
   Available chat commands:

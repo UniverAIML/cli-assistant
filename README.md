@@ -1,114 +1,79 @@
 # CLI Assistant
 
-A CLI assistant tool for development workflows.
+A modern CLI assistant tool with AI-powered chat capabilities for development workflows.
 
-## Installation
+## 🖥️ Platform Support & Installation
 
+This CLI Assistant supports hardware acceleration on different platforms with automatic detection and optimization.
+
+### Prerequisites
+- Python 3.9-3.13
+- Poetry (for dependency management)
+- For GPU acceleration:
+  - Windows/Linux: NVIDIA GPU with CUDA support
+  - macOS: Apple Silicon (M1/M2/M3/M4) for MPS acceleration
+
+### Install Dependencies
 ```bash
-# Install dependencies
+# Install all dependencies with Poetry
 poetry install
-```
 
-## Activating Virtual Environment
-
-In Poetry 2.x, there are several ways to work with the virtual environment:
-
-### Option 1: Use poetry run (Recommended)
-```bash
-# Run commands directly with poetry run
-poetry run cli-assistant
-poetry run python src/cli_assistant/main.py
-```
-
-### Option 2: Manual activation
-```bash
-# Get activation command for your shell
-poetry env activate
-
-# On Windows PowerShell, use the output like:
-# & "C:\path\to\venv\Scripts\Activate.ps1"
-
-# On Linux/macOS:
-# eval $(poetry env activate)
-```
-
-### Option 3: Install shell plugin (Optional)
-```bash
-# Install the shell plugin to restore poetry shell command
-poetry self add poetry-plugin-shell
-
-# Then you can use:
-poetry shell
-```
-
-## Usage
-
-```bash
-# Run the CLI tool
-poetry run cli-assistant
-
-# Run Python directly
-poetry run python src/cli_assistant/main.py
-
-# Run with arguments
+# Verify installation
 poetry run cli-assistant --help
 ```
 
-## Development
+### Automatic Platform Detection
+The application automatically detects your platform and configures optimal acceleration:
+- **Windows/Linux + NVIDIA**: Uses CUDA acceleration
+- **macOS Apple Silicon**: Uses Metal Performance Shaders (MPS)
+- **Other platforms**: Falls back to CPU mode
 
-### Code Quality Tools
+## 🎯 Quick Start
+
 ```bash
-# Run tests
-poetry run pytest
-
-# Run tests with verbose output
-poetry run pytest -v
-
-# Format code with Black
-poetry run black .
-
-# Sort imports with isort
-poetry run isort .
-
-# Lint code with flake8
-poetry run flake8
-
-# Type checking with mypy
-poetry run mypy src/
+# Start the AI chat assistant
+poetry run cli-assistant
 ```
-
-### Environment Management
-```bash
-# Show virtual environment info
-poetry env info
-
-# Show path to virtual environment
-poetry env info --path
-
-# Show path to Python executable
-poetry env info --executable
-
-# List all environments for this project
-poetry env list
-
-# Remove virtual environment
-poetry env remove python
-```
-
-### code ~/.zshrc
-
-## Project Structure
+## 📁 Project Structure
 
 ```
 cli-assistant/
 ├── src/
-│   └── cli_assistant/
-│       ├── __init__.py
-│       └── main.py
-├── tests/
-│   ├── __init__.py
-│   └── test_main.py
-├── docs/
-├── pyproject.toml
-└── README.md
+│   ├── cli_assistant/              # Main application
+│   │   ├── main.py                 # Entry point
+│   │   ├── chat_assistant.py       # AI chat functionality
+│   │   ├── function_definitions.py # AI function definitions
+│   │   └── assistant_stub.py       # Core business logic
+│   ├── address_book/               # Contact management
+│   │   ├── class_addressBook.py    # Address book implementation
+│   │   ├── class_record_main.py    # Contact record model
+│   │   ├── base_field_classes.py   # Field validation classes
+│   │   └── class_birthday_managment.py # Birthday functionality
+│   └── notes_models/               # Note management (future)
+├── tests/                          # Test suite
+├── docs/                           # Documentation
+├── pyproject.toml                  # Project configuration
+└── README.md                       # This file
 ```
+
+## 🤖 AI Features
+
+- **Function Calling**: AI can execute specific functions based on user intent
+- **Context Awareness**: Maintains conversation history for better responses
+- **Multi-Platform Optimization**: Automatic hardware detection and optimization
+
+## 🚨 Troubleshooting
+
+### GPU Not Detected
+- **Windows**: Ensure NVIDIA drivers are updated, run `nvidia-smi`
+- **macOS**: Check MPS availability: `python -c "import torch; print(torch.backends.mps.is_available())"`
+- **Linux**: Verify CUDA installation and drivers
+
+### Windows CUDA Issues
+- Ensure NVIDIA drivers are up to date
+- Check CUDA version compatibility
+- Run `nvidia-smi` to verify GPU visibility
+
+### macOS MPS Issues
+- Requires macOS 12.3+
+- Check with: `python -c "import torch; print(torch.backends.mps.is_available())"`

@@ -20,11 +20,11 @@ class BirthdayManagementMixin:
         today = datetime.now().date()
         birthday = self.birthday.date
         year = today.year
-        # Спробувати створити наступний день народження у поточному році
+        # Try to create next birthday in current year
         try:
             next_birthday = birthday.replace(year=year)
         except ValueError:
-            # Якщо день не існує (наприклад, 29.02 у невисокосний рік), шукаємо наступний високосний рік
+            # If date doesn't exist (e.g., 29.02 in non-leap year), find next leap year
             while True:
                 year += 1
                 try:
@@ -33,7 +33,7 @@ class BirthdayManagementMixin:
                 except ValueError:
                     continue
         if next_birthday < today:
-            # Якщо день народження вже був цього року, шукаємо наступний рік
+            # If birthday already passed this year, look for next year
             year += 1
             while True:
                 try:

@@ -5,7 +5,7 @@ from typing import Dict, Any
 
 class FunctionDefinitions:
     """Class containing system prompts and function definitions for the Chat Assistant."""
-    
+
     SYSTEM_PROMPT = """You are a helpful CLI assistant that manages contacts and notes using function calling capabilities. 
 You can understand natural language commands and help users with:
 - Contact management (add, search, edit, delete contacts)
@@ -80,12 +80,22 @@ Examples:
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "name": {"type": "string", "description": "The name of the contact (required)"},
-                    "phones": {"type": "array", "items": {"type": "string"}, "description": "Array of phone numbers (10 digits each)"},
-                    "birthday": {"type": "string", "description": "The birthday in DD.MM.YYYY format"}
+                    "name": {
+                        "type": "string",
+                        "description": "The name of the contact (required)",
+                    },
+                    "phones": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": "Array of phone numbers (10 digits each)",
+                    },
+                    "birthday": {
+                        "type": "string",
+                        "description": "The birthday in DD.MM.YYYY format",
+                    },
                 },
-                "required": ["name"]
-            }
+                "required": ["name"],
+            },
         },
         "search_contacts": {
             "name": "search_contacts",
@@ -93,10 +103,13 @@ Examples:
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "query": {"type": "string", "description": "The search query (name or phone)"}
+                    "query": {
+                        "type": "string",
+                        "description": "The search query (name or phone)",
+                    }
                 },
-                "required": ["query"]
-            }
+                "required": ["query"],
+            },
         },
         "add_note": {
             "name": "add_note",
@@ -105,11 +118,18 @@ Examples:
                 "type": "object",
                 "properties": {
                     "title": {"type": "string", "description": "The title of the note"},
-                    "content": {"type": "string", "description": "The content of the note"},
-                    "tags": {"type": "array", "items": {"type": "string"}, "description": "List of tags for the note"}
+                    "content": {
+                        "type": "string",
+                        "description": "The content of the note",
+                    },
+                    "tags": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": "List of tags for the note",
+                    },
                 },
-                "required": ["title", "content"]
-            }
+                "required": ["title", "content"],
+            },
         },
         "search_notes": {
             "name": "search_notes",
@@ -119,18 +139,18 @@ Examples:
                 "properties": {
                     "query": {"type": "string", "description": "The search query"}
                 },
-                "required": ["query"]
-            }
+                "required": ["query"],
+            },
         },
         "show_contacts": {
             "name": "show_contacts",
             "description": "Display all contacts in a table format",
-            "parameters": {"type": "object", "properties": {}}
+            "parameters": {"type": "object", "properties": {}},
         },
         "show_notes": {
             "name": "show_notes",
             "description": "Display all notes in a table format",
-            "parameters": {"type": "object", "properties": {}}
+            "parameters": {"type": "object", "properties": {}},
         },
         "get_upcoming_birthdays": {
             "name": "get_upcoming_birthdays",
@@ -138,14 +158,17 @@ Examples:
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "days": {"type": "integer", "description": "Number of days ahead to check (default: 7)"}
-                }
-            }
+                    "days": {
+                        "type": "integer",
+                        "description": "Number of days ahead to check (default: 7)",
+                    }
+                },
+            },
         },
         "get_statistics": {
             "name": "get_statistics",
             "description": "Get statistics about contacts and notes",
-            "parameters": {"type": "object", "properties": {}}
+            "parameters": {"type": "object", "properties": {}},
         },
         "edit_contact": {
             "name": "edit_contact",
@@ -153,14 +176,35 @@ Examples:
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "name": {"type": "string", "description": "The name of the contact to edit (required)"},
-                    "action": {"type": "string", "enum": ["add_phone", "remove_phone", "change_phone", "add_birthday"], "description": "The action to perform"},
-                    "phone": {"type": "string", "description": "Phone number for phone operations (10 digits)"},
-                    "new_phone": {"type": "string", "description": "New phone number for change operation (10 digits)"},
-                    "birthday": {"type": "string", "description": "Birthday in DD.MM.YYYY format"}
+                    "name": {
+                        "type": "string",
+                        "description": "The name of the contact to edit (required)",
+                    },
+                    "action": {
+                        "type": "string",
+                        "enum": [
+                            "add_phone",
+                            "remove_phone",
+                            "change_phone",
+                            "add_birthday",
+                        ],
+                        "description": "The action to perform",
+                    },
+                    "phone": {
+                        "type": "string",
+                        "description": "Phone number for phone operations (10 digits)",
+                    },
+                    "new_phone": {
+                        "type": "string",
+                        "description": "New phone number for change operation (10 digits)",
+                    },
+                    "birthday": {
+                        "type": "string",
+                        "description": "Birthday in DD.MM.YYYY format",
+                    },
                 },
-                "required": ["name", "action"]
-            }
+                "required": ["name", "action"],
+            },
         },
         "delete_contact": {
             "name": "delete_contact",
@@ -168,10 +212,13 @@ Examples:
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "name": {"type": "string", "description": "The name of the contact to delete"}
+                    "name": {
+                        "type": "string",
+                        "description": "The name of the contact to delete",
+                    }
                 },
-                "required": ["name"]
-            }
+                "required": ["name"],
+            },
         },
         "edit_note": {
             "name": "edit_note",
@@ -179,14 +226,27 @@ Examples:
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "note_id": {"type": "string", "description": "The ID of the note to edit"},
-                    "action": {"type": "string", "enum": ["edit_title", "edit_content", "add_tag", "remove_tag"], "description": "The action to perform"},
-                    "title": {"type": "string", "description": "New title for the note"},
-                    "content": {"type": "string", "description": "New content for the note"},
-                    "tag": {"type": "string", "description": "Tag to add or remove"}
+                    "note_id": {
+                        "type": "string",
+                        "description": "The ID of the note to edit",
+                    },
+                    "action": {
+                        "type": "string",
+                        "enum": ["edit_title", "edit_content", "add_tag", "remove_tag"],
+                        "description": "The action to perform",
+                    },
+                    "title": {
+                        "type": "string",
+                        "description": "New title for the note",
+                    },
+                    "content": {
+                        "type": "string",
+                        "description": "New content for the note",
+                    },
+                    "tag": {"type": "string", "description": "Tag to add or remove"},
                 },
-                "required": ["note_id", "action"]
-            }
+                "required": ["note_id", "action"],
+            },
         },
         "delete_note": {
             "name": "delete_note",
@@ -194,10 +254,13 @@ Examples:
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "note_id": {"type": "string", "description": "The ID of the note to delete"}
+                    "note_id": {
+                        "type": "string",
+                        "description": "The ID of the note to delete",
+                    }
                 },
-                "required": ["note_id"]
-            }
+                "required": ["note_id"],
+            },
         },
         "view_contact_details": {
             "name": "view_contact_details",
@@ -205,10 +268,13 @@ Examples:
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "name": {"type": "string", "description": "The name of the contact to view"}
+                    "name": {
+                        "type": "string",
+                        "description": "The name of the contact to view",
+                    }
                 },
-                "required": ["name"]
-            }
+                "required": ["name"],
+            },
         },
         "view_note_details": {
             "name": "view_note_details",
@@ -216,10 +282,13 @@ Examples:
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "note_id": {"type": "string", "description": "The ID of the note to view"}
+                    "note_id": {
+                        "type": "string",
+                        "description": "The ID of the note to view",
+                    }
                 },
-                "required": ["note_id"]
-            }
+                "required": ["note_id"],
+            },
         },
         "search_notes_by_tag": {
             "name": "search_notes_by_tag",
@@ -229,8 +298,8 @@ Examples:
                 "properties": {
                     "tag": {"type": "string", "description": "The tag to search for"}
                 },
-                "required": ["tag"]
-            }
+                "required": ["tag"],
+            },
         },
         "global_search": {
             "name": "global_search",
@@ -238,9 +307,12 @@ Examples:
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "query": {"type": "string", "description": "The search query to apply to both contacts and notes"}
+                    "query": {
+                        "type": "string",
+                        "description": "The search query to apply to both contacts and notes",
+                    }
                 },
-                "required": ["query"]
-            }
-        }
+                "required": ["query"],
+            },
+        },
     }
