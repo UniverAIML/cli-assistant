@@ -257,14 +257,11 @@ class ModelManager(LoggerMixin):
         """Setup OpenAI API instead of loading local model."""
         try:
             openai_model = os.getenv("OPENAI_MODEL", "gpt-3.5-turbo")
-            self.logger.info(f"Using OpenAI model: {openai_model}")
 
             # Create dummy model and tokenizer attributes for compatibility
             self.model = None
             self.tokenizer = None
             self.use_openai = True
-
-            self.logger.info("OpenAI API configured successfully")
 
         except Exception as e:
             self.logger.error(f"Failed to setup OpenAI: {str(e)}")
@@ -275,8 +272,6 @@ class ModelManager(LoggerMixin):
         try:
             model_config = self.config_manager.model_config
             system_config = self.config_manager.system_config
-
-            self.logger.info(f"Loading model: {model_config.model_name}")
 
             # Get model loading arguments
             model_kwargs = self.config_manager.get_model_kwargs()
@@ -293,8 +288,6 @@ class ModelManager(LoggerMixin):
                 and self.model is not None
             ):
                 self.model = self.model.to(system_config.device_type)
-
-            self.logger.info("Model loaded successfully")
 
         except Exception as e:
             self.logger.error(f"Failed to load model: {str(e)}")

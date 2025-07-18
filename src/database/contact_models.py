@@ -1,6 +1,7 @@
 from collections import UserDict
 from typing import List, Optional, Dict, TypedDict
 import re
+import json
 from datetime import datetime, date, timedelta
 
 
@@ -151,6 +152,61 @@ class AddressBook(UserDict[str, Record]):
     def to_typed_dict(self) -> Dict[str, ContactData]:
         """Return the entire address book as mapping name -> ContactData."""
         return {name: record.to_typed_dict() for name, record in self.data.items()}
+
+    def to_json(self) -> str:
+        """Serialize the address book to JSON string."""
+        return json.dumps(self.to_typed_dict(), indent=2, ensure_ascii=False)
+
+    @classmethod
+    def from_json(cls, json_str: str) -> "AddressBook":
+        """Deserialize address book from JSON string."""
+        try:
+            data = json.loads(json_str)
+            address_book = cls()
+
+            for name, contact_data in data.items():
+                # Create record from contact data
+                record = Record(contact_data["name"])
+
+                # Add phones
+                for phone in contact_data.get("phones", []):
+                    record.add_phone(phone)
+
+                # Add birthday if present
+                if contact_data.get("birthday"):
+                    record.add_birthday(contact_data["birthday"])
+
+                address_book.add_record(record)
+
+            return address_book
+        except (json.JSONDecodeError, KeyError, ValueError) as e:
+            raise ValueError(f"Invalid JSON data for AddressBook: {e}")
+
+    def save_to_file(self, filepath: str) -> bool:
+        """Save address book to JSON file."""
+        try:
+            with open(filepath, "w", encoding="utf-8") as f:
+                f.write(self.to_json())
+            return True
+        except (IOError, OSError) as e:
+            print(f"Error saving address book to file: {e}")
+            return False
+
+    @classmethod
+    def load_from_file(cls, filepath: str) -> "AddressBook":
+        """Load address book from JSON file."""
+        try:
+            with open(filepath, "r", encoding="utf-8") as f:
+                json_str = f.read()
+            return cls.from_json(json_str)
+        except (IOError, OSError) as e:
+            print(
+                f"Error loading address book from file: {e}. Creating new AddressBook."
+            )
+            return cls()
+        except ValueError as e:
+            print(f"Error parsing address book file: {e}. Creating new AddressBook.")
+            return cls()
 
     def get_upcoming_birthdays(self) -> List[Dict[str, str]]:
         """Get list of contacts with birthdays in the next 7 days."""

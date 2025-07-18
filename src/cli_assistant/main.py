@@ -9,6 +9,7 @@ from colorama import init
 init(autoreset=True)
 
 from .chat_assistant import ChatAssistant
+from .interactive_menu import InteractiveMenu
 
 
 def main(args: Optional[List[str]] = None) -> None:
@@ -20,8 +21,28 @@ def main(args: Optional[List[str]] = None) -> None:
     if args is None:
         args = sys.argv[1:]
 
-    # If no arguments or --chat argument, start chat mode
-    if not args or (args and args[0] in ["chat", "--chat", "-c"]):
+    # If no arguments, start interactive menu by default
+    if not args:
+        try:
+            menu = InteractiveMenu()
+            menu.run()
+            return
+        except Exception as e:
+            print(f"Error initializing interactive menu: {e}")
+            return
+
+    # Handle menu command
+    if args[0] in ["menu", "--menu", "-m"]:
+        try:
+            menu = InteractiveMenu()
+            menu.run()
+            return
+        except Exception as e:
+            print(f"Error initializing interactive menu: {e}")
+            return
+
+    # Handle chat command
+    if args[0] in ["chat", "--chat", "-c"]:
         try:
             assistant = ChatAssistant()
             assistant.chat_loop()
@@ -49,23 +70,20 @@ def print_help() -> None:
 Usage: cli-assistant [command] [options]
 
 Commands:
-  chat, -c, --chat    Start interactive chat mode (default)
-  help, -h, --help    Show this help message
-
-Chat Mode:
-  The assistant uses transformer model for natural language processing.
-  You can ask questions, request text analysis, or just chat!
-  
-  Available chat commands:
-  - Type 'help' for chat-specific help
-  - Type 'exit' or 'quit' to end the conversation
-  - Press Ctrl+C to force quit
+  (no command)     Start interactive menu (default)
+  menu, -m         Start interactive menu
+  chat, -c         Start chat assistant
+  help, -h         Show this help message
 
 Examples:
-  cli-assistant                 # Start chat mode
-  cli-assistant chat            # Start chat mode explicitly
-  cli-assistant --help          # Show this help
-    """
+  cli-assistant           # Start interactive menu
+  cli-assistant menu      # Start interactive menu
+  cli-assistant chat      # Start chat assistant
+  cli-assistant --help    # Show help
+
+The interactive menu provides a beautiful interface for managing
+contacts and notes with full AI assistant integration.
+"""
     print(help_text)
 
 

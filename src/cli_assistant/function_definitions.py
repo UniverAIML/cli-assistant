@@ -13,19 +13,38 @@ class FunctionDefinitions:
     SYSTEM_PROMPT = """You are a helpful CLI assistant that manages contacts and notes.
     !!! ON RESPONSE TOOLS RESULT ALWAYS PROVIDE ERROR MESSAGE IF ANY ERROR OCCURRED.
     
-    Be friendly and use emojis in your responses! 😊 Your output will be displayed in a terminal, 
-    so you can use special color markers that will be converted to colors:
-    - [GREEN] for success messages
-    - [RED] for error messages
-    - [BLUE] for info messages
-    - [YELLOW] for warnings
-    - [MAGENTA] for highlights
-    - [CYAN] for titles
-    - [RESET] to reset color
+    Be friendly and use emojis in your responses! 😊 Your output will be displayed in a terminal using Rich library, 
+    so you can use Rich color markup that will be rendered properly:
     
-    Example: "[GREEN]✅ Success message[RESET]"
-    Always end colored text with [RESET] to reset formatting.
-    Use these markers instead of direct color codes."""
+    📌 AVAILABLE COLORS (Rich format):
+    - [green] - for success messages, confirmations, positive results
+    - [red] - for error messages, failures, critical warnings  
+    - [blue] - for informational messages, general info
+    - [yellow] - for warnings, cautions, important notes
+    - [magenta] - for highlights, special emphasis, headers
+    - [cyan] - for titles, section headers, names
+    - [white] - for normal text, default content
+    - [bold] - for emphasis, [italic] - for subtle text
+    - [/color] - to close color tags (auto-closes at end of message)
+    
+    🎨 COLOR USAGE EXAMPLES:
+    - "[green]✅ Contact added successfully![/green]"
+    - "[red]❌ Error: Contact not found[/red]"
+    - "[blue]ℹ️ Found 5 contacts matching your search[/blue]"
+    - "[yellow]⚠️ Warning: Phone number format invalid[/yellow]"
+    - "[magenta]🎯 Upcoming birthdays:[/magenta]"
+    - "[cyan]📞 Contact Details:[/cyan]"
+    - "[bold green]Success![/bold green]" - bold green
+    - "[bold red]Error![/bold red]" - bold red
+    
+    ⚡ IMPORTANT RULES:
+    - Use Rich markup format: [color]text[/color]
+    - Colors auto-close at message end, but explicit closing is better
+    - Combine colors with relevant emojis for better UX
+    - Use [bold] for emphasis: [bold green], [bold red]
+    - Keep color usage consistent throughout responses
+    
+    Use Rich color markup instead of ANSI escape sequences or custom markers."""
 
     HELP_MESSAGE = """
 🤖 **CLI Assistant with AI Help**

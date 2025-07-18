@@ -2,10 +2,10 @@
 Data management module for AddressBook and NotesManager persistence.
 
 This module provides functionality for saving and loading AddressBook and NotesManager data
-using pickle serialization protocol.
+using JSON serialization.
 """
 
-import pickle
+import json
 from pathlib import Path
 from .contact_models import AddressBook
 from .note_models import NotesManager
@@ -14,7 +14,7 @@ from typing import Dict, Any, Tuple, Optional
 
 class DataManager:
     """
-    Manages persistence of AddressBook and NotesManager data using pickle serialization.
+    Manages persistence of AddressBook and NotesManager data using JSON serialization.
 
     This class handles saving and loading of AddressBook and NotesManager instances to/from disk,
     providing a clean separation of concerns between data storage and business logic.
@@ -22,24 +22,24 @@ class DataManager:
 
     def __init__(
         self,
-        contacts_filename: str = "addressbook.pkl",
+        contacts_filename: str = "addressbook.json",
         notes_filename: Optional[str] = None,
     ) -> None:
         """
         Initialize DataManager with specified filenames.
 
         Args:
-            contacts_filename (str): Name of the file to store contacts. Defaults to "addressbook.pkl"
+            contacts_filename (str): Name of the file to store contacts. Defaults to "addressbook.json"
             notes_filename (Optional[str]): Name of the file to store notes. If None, generates based on contacts filename
         """
         self.contacts_filename = contacts_filename
 
         # Handle legacy single-file format
         if notes_filename is None:
-            if contacts_filename.endswith(".pkl"):
-                self.notes_filename = contacts_filename.replace(".pkl", "_notes.pkl")
+            if contacts_filename.endswith(".json"):
+                self.notes_filename = contacts_filename.replace(".json", "_notes.json")
             else:
-                self.notes_filename = contacts_filename + "_notes.pkl"
+                self.notes_filename = contacts_filename + "_notes.json"
         else:
             self.notes_filename = notes_filename
 
@@ -48,7 +48,7 @@ class DataManager:
 
     def save_contacts(self, address_book: AddressBook) -> bool:
         """
-        Save AddressBook data to file using pickle serialization.
+        Save AddressBook data to file using JSON serialization.
 
         Args:
             address_book (AddressBook): The AddressBook instance to save
@@ -56,17 +56,11 @@ class DataManager:
         Returns:
             bool: True if save was successful, False otherwise
         """
-        try:
-            with open(self.contacts_filepath, "wb") as file:
-                pickle.dump(address_book, file)
-            return True
-        except (IOError, pickle.PickleError) as e:
-            print(f"Error saving contacts: {e}")
-            return False
+        return address_book.save_to_file(str(self.contacts_filepath))
 
     def save_notes(self, notes_manager: NotesManager) -> bool:
         """
-        Save NotesManager data to file using pickle serialization.
+        Save NotesManager data to file using JSON serialization.
 
         Args:
             notes_manager (NotesManager): The NotesManager instance to save
@@ -74,13 +68,7 @@ class DataManager:
         Returns:
             bool: True if save was successful, False otherwise
         """
-        try:
-            with open(self.notes_filepath, "wb") as file:
-                pickle.dump(notes_manager, file)
-            return True
-        except (IOError, pickle.PickleError) as e:
-            print(f"Error saving notes: {e}")
-            return False
+        return notes_manager.save_to_file(str(self.notes_filepath))
 
     def save_data(
         self, address_book: AddressBook, notes_manager: Optional[NotesManager] = None
@@ -105,53 +93,21 @@ class DataManager:
 
     def load_contacts(self) -> AddressBook:
         """
-        Load AddressBook data from file using pickle deserialization.
+        Load AddressBook data from file using JSON deserialization.
 
         Returns:
             AddressBook: Loaded AddressBook instance, or new empty one if file not found
         """
-        try:
-            if self.contacts_filepath.exists():
-                with open(self.contacts_filepath, "rb") as file:
-                    address_book = pickle.load(file)
-                    if isinstance(address_book, AddressBook):
-                        return address_book
-                    else:
-                        print(
-                            "Warning: Invalid contacts data format in file. Creating new AddressBook."
-                        )
-                        return AddressBook()
-            else:
-                # File doesn't exist, return new AddressBook
-                return AddressBook()
-        except (IOError, pickle.PickleError, EOFError) as e:
-            print(f"Error loading contacts: {e}. Creating new AddressBook.")
-            return AddressBook()
+        return AddressBook.load_from_file(str(self.contacts_filepath))
 
     def load_notes(self) -> NotesManager:
         """
-        Load NotesManager data from file using pickle deserialization.
+        Load NotesManager data from file using JSON deserialization.
 
         Returns:
             NotesManager: Loaded NotesManager instance, or new empty one if file not found
         """
-        try:
-            if self.notes_filepath.exists():
-                with open(self.notes_filepath, "rb") as file:
-                    notes_manager = pickle.load(file)
-                    if isinstance(notes_manager, NotesManager):
-                        return notes_manager
-                    else:
-                        print(
-                            "Warning: Invalid notes data format in file. Creating new NotesManager."
-                        )
-                        return NotesManager()
-            else:
-                # File doesn't exist, return new NotesManager
-                return NotesManager()
-        except (IOError, pickle.PickleError, EOFError) as e:
-            print(f"Error loading notes: {e}. Creating new NotesManager.")
-            return NotesManager()
+        return NotesManager.load_from_file(str(self.notes_filepath))
 
     def load_data(self) -> Tuple[AddressBook, NotesManager]:
         """

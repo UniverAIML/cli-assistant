@@ -813,13 +813,13 @@ class TestAddressBookBirthdays:
         upcoming = book.get_upcoming_birthdays()
         assert len(upcoming) == 1
         assert upcoming[0]["name"] == "John"
-        
+
         # Якщо завтра вихідний, то дата привітання переноситься на понеділок
         expected_date = tomorrow
         if tomorrow.weekday() >= 5:  # Субота або неділя
             days_until_monday = 7 - tomorrow.weekday()
             expected_date = tomorrow + timedelta(days=days_until_monday)
-        
+
         assert upcoming[0]["congratulation_date"] == expected_date.strftime("%Y.%m.%d")
 
     @pytest.mark.unit

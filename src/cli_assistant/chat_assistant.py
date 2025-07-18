@@ -5,9 +5,9 @@ import re
 from typing import Dict, List, Any, Optional
 from colorama import Fore, Style
 
-from .assistant_stub import AssistantStub
 from .function_definitions import FunctionDefinitions
 from .function_executor import FunctionExecutor
+from .operations_manager import OperationsManager
 from .model_manager import ModelManager
 from .config_manager import LoggerMixin
 
@@ -21,11 +21,11 @@ class ChatAssistant(LoggerMixin):
         # Initialize the model manager (Singleton)
         self.model_manager = ModelManager()
 
-        # Initialize the assistant stub for handling commands
-        self.assistant = AssistantStub()
+        # Initialize the operations manager
+        self.operations = OperationsManager()
 
         # Initialize the function executor
-        self.function_executor = FunctionExecutor(self.assistant)
+        self.function_executor = FunctionExecutor(self.operations)
 
         self.conversation_history: List[Dict[str, str]] = []
         self.is_running = True
@@ -33,23 +33,6 @@ class ChatAssistant(LoggerMixin):
         # Get system prompt and function definitions from the dedicated class
         self.system_prompt = FunctionDefinitions.SYSTEM_PROMPT
         self.available_functions = FunctionDefinitions.AVAILABLE_FUNCTIONS
-
-    def colorize_text(self, text: str) -> str:
-        """Convert color markers to colorama colors."""
-        color_map = {
-            "[GREEN]": Fore.GREEN,
-            "[RED]": Fore.RED,
-            "[BLUE]": Fore.BLUE,
-            "[YELLOW]": Fore.YELLOW,
-            "[MAGENTA]": Fore.MAGENTA,
-            "[CYAN]": Fore.CYAN,
-            "[RESET]": Style.RESET_ALL,
-        }
-
-        for marker, color in color_map.items():
-            text = text.replace(marker, color)
-
-        return text
 
     def welcome_message(self) -> str:
         """Return a welcome message for the chat assistant."""
@@ -237,8 +220,7 @@ class ChatAssistant(LoggerMixin):
         # Let the function calling model handle everything
         response = self.generate_function_calling_response(user_input)
 
-        # Apply color processing to the response
-        return self.colorize_text(response)
+        return response
 
     def add_to_history(self, user_input: str, assistant_response: str) -> None:
         """Add conversation to history."""

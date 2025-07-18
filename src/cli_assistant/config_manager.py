@@ -95,7 +95,7 @@ class ConfigurationManager:
 
         # Setup application logging
         logging.basicConfig(
-            level=logging.INFO,
+            level=logging.WARNING,
             format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
         )
         self.logger = logging.getLogger(__name__)
@@ -106,8 +106,6 @@ class ConfigurationManager:
         provider = "openai" if use_openai else "local"
 
         self.provider_config = ProviderConfig(provider=provider, use_openai=use_openai)
-
-        self.logger.info(f"AI Provider: {provider}")
 
     def _detect_system_config(self) -> None:
         """Detect optimal system configuration for model loading."""
@@ -151,8 +149,6 @@ class ConfigurationManager:
             device_info=device_info,
         )
 
-        self.logger.info(f"Detected system configuration: {device_info}")
-
     def _setup_model_config(self) -> None:
         """Setup model configuration."""
         self.model_config = ModelConfig()
@@ -177,7 +173,7 @@ class ConfigurationManager:
                     "OpenAI API key not found. Set OPENAI_API_KEY environment variable."
                 )
             else:
-                self.logger.info(f"OpenAI model configured: {model_name}")
+                pass
 
     def get_model_kwargs(self) -> Dict[str, Any]:
         """Get model loading arguments based on system configuration."""

@@ -8,6 +8,7 @@ from collections import UserDict
 from typing import List, Optional, Dict, TypedDict
 from datetime import datetime
 import re
+import json
 
 
 class NoteData(TypedDict):
@@ -23,7 +24,9 @@ class NoteData(TypedDict):
 class Note:
     """Class for storing note information including title, content, tags and timestamps."""
 
-    def __init__(self, title: str, content: str = "", tags: Optional[List[str]] = None) -> None:
+    def __init__(
+        self, title: str, content: str = "", tags: Optional[List[str]] = None
+    ) -> None:
         if not title or not title.strip():
             raise ValueError("Note title cannot be empty")
 
@@ -126,7 +129,9 @@ class NotesManager(UserDict[str, Note]):
         self.data[note_id] = note
         return note_id
 
-    def create_note(self, title: str, content: str = "", tags: Optional[List[str]] = None) -> str:
+    def create_note(
+        self, title: str, content: str = "", tags: Optional[List[str]] = None
+    ) -> str:
         """Create a new note and add it to the manager."""
         note = Note(title, content, tags)
         return self.add_note(note)
@@ -180,6 +185,56 @@ class NotesManager(UserDict[str, Note]):
     def to_typed_dict(self) -> Dict[str, NoteData]:
         """Return the entire notes manager as mapping id -> NoteData."""
         return {note_id: note.to_typed_dict() for note_id, note in self.data.items()}
+
+    def to_json(self) -> str:
+        """Serialize the notes manager to JSON string."""
+        data = {"notes": self.to_typed_dict(), "next_id": self._next_id}
+        return json.dumps(data, indent=2, ensure_ascii=False)
+
+    @classmethod
+    def from_json(cls, json_str: str) -> "NotesManager":
+        """Deserialize notes manager from JSON string."""
+        try:
+            data = json.loads(json_str)
+            notes_manager = cls()
+
+            # Load next_id if present
+            if "next_id" in data:
+                notes_manager._next_id = data["next_id"]
+
+            # Load notes
+            notes_data = data.get("notes", {})
+            for note_id, note_data in notes_data.items():
+                note = Note.from_typed_dict(note_data)
+                notes_manager.data[note_id] = note
+
+            return notes_manager
+        except (json.JSONDecodeError, KeyError, ValueError) as e:
+            raise ValueError(f"Invalid JSON data for NotesManager: {e}")
+
+    def save_to_file(self, filepath: str) -> bool:
+        """Save notes manager to JSON file."""
+        try:
+            with open(filepath, "w", encoding="utf-8") as f:
+                f.write(self.to_json())
+            return True
+        except (IOError, OSError) as e:
+            print(f"Error saving notes to file: {e}")
+            return False
+
+    @classmethod
+    def load_from_file(cls, filepath: str) -> "NotesManager":
+        """Load notes manager from JSON file."""
+        try:
+            with open(filepath, "r", encoding="utf-8") as f:
+                json_str = f.read()
+            return cls.from_json(json_str)
+        except (IOError, OSError) as e:
+            print(f"Error loading notes from file: {e}. Creating new NotesManager.")
+            return cls()
+        except ValueError as e:
+            print(f"Error parsing notes file: {e}. Creating new NotesManager.")
+            return cls()
 
     def from_typed_dict(self, data: Dict[str, NoteData]) -> None:
         """Load notes from typed dict data."""
