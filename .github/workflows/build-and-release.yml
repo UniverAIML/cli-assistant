@@ -71,22 +71,18 @@ jobs:
 
     - name: Verify build output
       run: |
-        if [ "$RUNNER_OS" == "Windows" ]; then
-          if [ -f "dist/executables/${{ matrix.artifact_name }}" ]; then
-            echo "✅ Windows executable built successfully"
-            ls -la "dist/executables/${{ matrix.artifact_name }}"
-          else
-            echo "❌ Windows executable not found"
-            exit 1
-          fi
+        echo "🔍 Checking for built executable..."
+        ls -la "dist/executables/" || true
+        
+        if [ -f "dist/executables/${{ matrix.artifact_name }}" ]; then
+          echo "✅ Executable built successfully: ${{ matrix.artifact_name }}"
+          echo "📏 File size: $(du -h "dist/executables/${{ matrix.artifact_name }}" | cut -f1)"
+          echo "🎯 Platform: ${{ matrix.os }} (${{ matrix.arch }})"
         else
-          if [ -f "dist/executables/${{ matrix.artifact_name }}" ]; then
-            echo "✅ Unix executable built successfully"
-            ls -la "dist/executables/${{ matrix.artifact_name }}"
-          else
-            echo "❌ Unix executable not found"
-            exit 1
-          fi
+          echo "❌ Executable not found: ${{ matrix.artifact_name }}"
+          echo "📁 Contents of dist/executables/:"
+          ls -la "dist/executables/" || echo "Directory does not exist"
+          exit 1
         fi
       shell: bash
 

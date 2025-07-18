@@ -17,6 +17,16 @@ fi
 OS=$(uname -s | tr '[:upper:]' '[:lower:]')
 ARCH=$(uname -m)
 
+# Normalize platform names
+case $OS in
+    darwin)
+        OS="macos"
+        ;;
+    mingw64_nt-*|cygwin_nt-*|msys_nt-*)
+        OS="windows"
+        ;;
+esac
+
 # Normalize architecture names
 case $ARCH in
     x86_64)
@@ -56,7 +66,7 @@ mkdir -p "build/specs"
 
 # Additional flags for macOS
 EXTRA_FLAGS=""
-if [ "$OS" = "darwin" ]; then
+if [ "$(uname -s)" = "Darwin" ]; then
     EXTRA_FLAGS="--osx-bundle-identifier com.univer.cli-assistant --icon $(pwd)/src/cli_assistant/icon.png"
 else
     EXTRA_FLAGS="--icon $(pwd)/src/cli_assistant/icon.png"
