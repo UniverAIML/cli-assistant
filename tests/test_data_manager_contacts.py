@@ -10,8 +10,8 @@ import pytest
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
-from database.data_manager import DataManager
-from database.contact_models import AddressBook, Record
+from cli_assistant.database.data_manager import DataManager
+from cli_assistant.database.contact_models import AddressBook, Record
 
 
 class TestDataManagerContacts:

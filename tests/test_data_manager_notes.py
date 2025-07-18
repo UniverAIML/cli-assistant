@@ -10,8 +10,8 @@ import pytest
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
-from database.data_manager import DataManager
-from database.note_models import NotesManager
+from cli_assistant.database.data_manager import DataManager
+from cli_assistant.database.note_models import NotesManager
 
 
 class TestDataManagerNotes:
@@ -108,6 +108,7 @@ class TestDataManagerNotes:
 
         # Get original timestamps
         original_note = notes_manager.find_note(note_id)
+        assert original_note is not None
         original_created = original_note.created_at
 
         # Update the note to set updated_at

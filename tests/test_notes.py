@@ -12,6 +12,7 @@ Comprehensive tests covering all notes functionality including:
 
 import pytest
 from datetime import datetime
+from typing import Dict
 import tempfile
 import os
 import sys
@@ -19,7 +20,7 @@ import sys
 # Add src to path for imports
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
-from database.note_models import Note, NotesManager, NoteData
+from cli_assistant.database.note_models import Note, NotesManager, NoteData
 
 
 class TestNote:
@@ -306,6 +307,7 @@ class TestNotesManager:
         # Update one note to change its timestamp
         time.sleep(0.01)  # Small delay to ensure different timestamp
         note3 = manager.find_note(id3)
+        assert note3 is not None
         note3.update_content("Updated content")
 
         recent = manager.get_recent_notes(2)
@@ -337,7 +339,7 @@ class TestNotesManager:
         manager = NotesManager()
 
         # Create test data
-        test_data = {
+        test_data: Dict[str, NoteData] = {
             "note_0001": {
                 "title": "Test Note 1",
                 "content": "Content 1",
@@ -386,6 +388,7 @@ class TestNotesIntegration:
 
         # Update a note
         note1 = manager.find_note(id1)
+        assert note1 is not None
         note1.update_content("Updated introduction to Python programming")
         note1.add_tag("programming")
 

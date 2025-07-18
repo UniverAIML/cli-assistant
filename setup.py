@@ -6,18 +6,23 @@ Setup script for CLI Assistant package.
 from setuptools import setup, find_packages
 import os
 
+
 # Читаємо версію з __init__.py
 def get_version():
-    with open(os.path.join("src", "cli_assistant", "__init__.py"), "r", encoding="utf-8") as f:
+    with open(
+        os.path.join("src", "cli_assistant", "__init__.py"), "r", encoding="utf-8"
+    ) as f:
         for line in f:
             if line.startswith("__version__"):
                 return line.split("=")[1].strip().strip('"').strip("'")
     return "0.1.0"
 
+
 # Читаємо опис з README
 def get_long_description():
     with open("README.md", "r", encoding="utf-8") as f:
         return f.read()
+
 
 setup(
     name="cli-assistant",

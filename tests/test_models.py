@@ -17,7 +17,7 @@ import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
 import pytest
-from database.contact_models import (
+from cli_assistant.database.contact_models import (
     Field,
     Name,
     Phone,
@@ -26,7 +26,7 @@ from database.contact_models import (
     ContactData,
     Birthday,
 )
-from database.data_manager import DataManager
+from cli_assistant.database.data_manager import DataManager
 from datetime import date, timedelta
 import tempfile
 import os
