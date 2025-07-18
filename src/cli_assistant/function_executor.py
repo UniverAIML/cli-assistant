@@ -233,7 +233,7 @@ class FunctionExecutor:
         except (ValueError, TypeError):
             days = 7
 
-        upcoming = self.operations.get_upcoming_birthdays()
+        upcoming = self.operations.get_upcoming_birthdays(days)
 
         if not upcoming:
             return FunctionResult(

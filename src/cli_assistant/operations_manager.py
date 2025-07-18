@@ -99,6 +99,14 @@ class OperationsManager:
             # Add to address book
             self.address_book.add_record(record)
 
+            # Save data to file
+            save_success = self.save_data()
+            if not save_success:
+                return {
+                    "success": False,
+                    "message": f"Contact '{name}' added but failed to save to file",
+                }
+
             return {
                 "success": True,
                 "message": f"Contact '{name}' added successfully",
@@ -166,6 +174,7 @@ class OperationsManager:
                 if not phone:
                     return {"success": False, "message": "Phone number is required"}
                 record.add_phone(phone)
+                self.save_data()
                 return {
                     "success": True,
                     "message": f"Phone '{phone}' added successfully",
@@ -176,6 +185,7 @@ class OperationsManager:
                 if not phone:
                     return {"success": False, "message": "Phone number is required"}
                 record.remove_phone(phone)
+                self.save_data()
                 return {
                     "success": True,
                     "message": f"Phone '{phone}' removed successfully",
@@ -190,6 +200,7 @@ class OperationsManager:
                         "message": "Both old and new phone numbers are required",
                     }
                 record.edit_phone(old_phone, new_phone)
+                self.save_data()
                 return {
                     "success": True,
                     "message": f"Phone changed from '{old_phone}' to '{new_phone}'",
@@ -200,6 +211,7 @@ class OperationsManager:
                 if not birthday:
                     return {"success": False, "message": "Birthday is required"}
                 record.add_birthday(birthday)
+                self.save_data()
                 return {"success": True, "message": f"Birthday set to '{birthday}'"}
 
             else:
@@ -220,6 +232,7 @@ class OperationsManager:
         """
         try:
             self.address_book.delete(name)
+            self.save_data()
             return {
                 "success": True,
                 "message": f"Contact '{name}' deleted successfully",
@@ -237,7 +250,7 @@ class OperationsManager:
         Returns:
             List of contact data with upcoming birthdays
         """
-        result = self.address_book.get_upcoming_birthdays()
+        result = self.address_book.get_upcoming_birthdays(days)
         return result if isinstance(result, list) else []
 
     def get_statistics(self) -> Dict[str, Any]:
@@ -293,6 +306,15 @@ class OperationsManager:
                 tags = []
 
             note_id = self.notes_manager.create_note(title, content, tags)
+            
+            # Save data to file
+            save_success = self.save_data()
+            if not save_success:
+                return {
+                    "success": False,
+                    "message": f"Note '{title}' added but failed to save to file",
+                }
+            
             return {
                 "success": True,
                 "message": f"Note '{title}' added successfully",
@@ -347,6 +369,7 @@ class OperationsManager:
                     return {"success": False, "message": "Title is required"}
                 note.title = title
                 note.updated_at = datetime.now().isoformat()
+                self.save_data()
                 return {"success": True, "message": "Title updated successfully"}
 
             elif action == "edit_content":
@@ -355,6 +378,7 @@ class OperationsManager:
                     return {"success": False, "message": "Content is required"}
                 note.content = content
                 note.updated_at = datetime.now().isoformat()
+                self.save_data()
                 return {"success": True, "message": "Content updated successfully"}
 
             elif action == "add_tag":
@@ -362,6 +386,7 @@ class OperationsManager:
                 if not tag:
                     return {"success": False, "message": "Tag is required"}
                 note.add_tag(tag)
+                self.save_data()
                 return {"success": True, "message": f"Tag '{tag}' added successfully"}
 
             elif action == "remove_tag":
@@ -369,6 +394,7 @@ class OperationsManager:
                 if not tag:
                     return {"success": False, "message": "Tag is required"}
                 note.remove_tag(tag)
+                self.save_data()
                 return {"success": True, "message": f"Tag '{tag}' removed successfully"}
 
             else:
@@ -388,6 +414,7 @@ class OperationsManager:
             Dict with success status and message
         """
         if self.notes_manager.delete_note(note_id):
+            self.save_data()
             return {"success": True, "message": "Note deleted successfully"}
         else:
             return {

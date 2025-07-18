@@ -208,3 +208,5 @@ __marimo__/
 test-results.xml
 address_book.json
 export_*.json
+addressbook.json
+addressbook_notes.json

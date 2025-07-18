@@ -208,7 +208,7 @@ class AddressBook(UserDict[str, Record]):
             print(f"Error parsing address book file: {e}. Creating new AddressBook.")
             return cls()
 
-    def get_upcoming_birthdays(self) -> List[Dict[str, str]]:
+    def get_upcoming_birthdays(self, days) -> List[Dict[str, str]]:
         """Get list of contacts with birthdays in the next 7 days."""
         upcoming_birthdays: List[Dict[str, str]] = []
         today = date.today()
@@ -217,17 +217,14 @@ class AddressBook(UserDict[str, Record]):
             if record.birthday:
                 birthday_this_year = record.birthday.date.replace(year=today.year)
 
-                # Якщо день народження вже минув цього року, перевіряємо наступний рік
                 if birthday_this_year < today:
                     birthday_this_year = birthday_this_year.replace(year=today.year + 1)
 
-                # Перевіряємо, чи день народження в наступні 7 днів
                 days_until_birthday = (birthday_this_year - today).days
-                if 0 <= days_until_birthday <= 7:
-                    # Якщо день народження припадає на вихідні, переносимо на понеділок
+                if 0 <= days_until_birthday <= days:
                     congratulation_date = birthday_this_year
                     if birthday_this_year.weekday() >= 5:  # 5 = субота, 6 = неділя
-                        days_until_monday = 7 - birthday_this_year.weekday()
+                        days_until_monday = days - birthday_this_year.weekday()
                         congratulation_date = birthday_this_year + timedelta(
                             days=days_until_monday
                         )

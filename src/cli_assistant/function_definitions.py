@@ -133,7 +133,7 @@ class FunctionDefinitions:
         },
         "add_note": {
             "name": "add_note",
-            "description": "Add a new note with optional tags",
+            "description": "Add a new note with optional tags. If Title or Tags is not provided, it will be generated",
             "parameters": {
                 "type": "object",
                 "properties": {

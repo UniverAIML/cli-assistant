@@ -179,7 +179,6 @@ class InteractiveMenu:
 
         if result["success"]:
             self.console.print(f"[green]{result['message']}[/green]")
-            self.operations.save_data()
         else:
             self.console.print(f"[red]{result['message']}[/red]")
 
@@ -208,7 +207,6 @@ class InteractiveMenu:
 
         if result["success"]:
             self.console.print(f"[green]{result['message']}[/green]")
-            self.operations.save_data()
         else:
             self.console.print(f"[red]{result['message']}[/red]")
 
@@ -363,7 +361,6 @@ class InteractiveMenu:
                 result = self.operations.edit_contact(name, "add_phone", phone=phone)
                 if result["success"]:
                     self.console.print(f"[green]{result['message']}[/green]")
-                    self.operations.save_data()
                 else:
                     self.console.print(f"[red]{result['message']}[/red]")
 
@@ -382,7 +379,6 @@ class InteractiveMenu:
                 result = self.operations.edit_contact(name, "remove_phone", phone=phone)
                 if result["success"]:
                     self.console.print(f"[green]{result['message']}[/green]")
-                    self.operations.save_data()
                 else:
                     self.console.print(f"[red]{result['message']}[/red]")
 
@@ -407,7 +403,6 @@ class InteractiveMenu:
                     )
                     if result["success"]:
                         self.console.print(f"[green]{result['message']}[/green]")
-                        self.operations.save_data()
                     else:
                         self.console.print(f"[red]{result['message']}[/red]")
 
@@ -421,7 +416,6 @@ class InteractiveMenu:
                 )
                 if result["success"]:
                     self.console.print(f"[green]{result['message']}[/green]")
-                    self.operations.save_data()
                 else:
                     self.console.print(f"[red]{result['message']}[/red]")
 
@@ -481,7 +475,6 @@ class InteractiveMenu:
                 )
                 if result["success"]:
                     self.console.print(f"[green]{result['message']}[/green]")
-                    self.operations.save_data()
                 else:
                     self.console.print(f"[red]{result['message']}[/red]")
 
@@ -495,7 +488,6 @@ class InteractiveMenu:
                 )
                 if result["success"]:
                     self.console.print(f"[green]{result['message']}[/green]")
-                    self.operations.save_data()
                 else:
                     self.console.print(f"[red]{result['message']}[/red]")
 
@@ -505,7 +497,6 @@ class InteractiveMenu:
                 result = self.operations.edit_note(note_id, "add_tag", tag=new_tag)
                 if result["success"]:
                     self.console.print(f"[green]{result['message']}[/green]")
-                    self.operations.save_data()
                 else:
                     self.console.print(f"[red]{result['message']}[/red]")
 
@@ -522,7 +513,6 @@ class InteractiveMenu:
                 result = self.operations.edit_note(note_id, "remove_tag", tag=tag)
                 if result["success"]:
                     self.console.print(f"[green]{result['message']}[/green]")
-                    self.operations.save_data()
                 else:
                     self.console.print(f"[red]{result['message']}[/red]")
 
@@ -553,7 +543,6 @@ class InteractiveMenu:
             result = self.operations.delete_contact(name)
             if result["success"]:
                 self.console.print(f"[green]{result['message']}[/green]")
-                self.operations.save_data()
             else:
                 self.console.print(f"[red]{result['message']}[/red]")
 
@@ -596,7 +585,6 @@ class InteractiveMenu:
             result = self.operations.delete_note(note_id)
             if result["success"]:
                 self.console.print(f"[green]{result['message']}[/green]")
-                self.operations.save_data()
             else:
                 self.console.print(f"[red]{result['message']}[/red]")
 
@@ -644,9 +632,6 @@ class InteractiveMenu:
                 self.console.print(
                     f"\n[bold green]Assistant:[/bold green] {response}\n"
                 )
-
-                # Save data after each operation
-                self.operations.save_data()
 
         except Exception as e:
             self.console.print(f"[red]Error initializing AI Assistant: {e}[/red]")
@@ -861,7 +846,6 @@ class InteractiveMenu:
             ).ask()
 
             if choice == "🚪 Exit":
-                self.operations.save_data()
                 self.console.print(
                     "\n[bold green]Thank you for using Personal Assistant![/bold green]"
                 )
