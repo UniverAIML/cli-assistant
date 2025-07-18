@@ -34,19 +34,40 @@ EXE_NAME="cli-assistant-${OS}-${ARCH}"
 
 echo "🎯 Building for: ${OS} ${ARCH}"
 
-echo "📦 Installing PyInstaller..."
-python3 -m pip install pyinstaller
+# Choose the right Python command
+if command -v python3 &> /dev/null; then
+    PYTHON_CMD="python3"
+elif command -v python &> /dev/null; then
+    PYTHON_CMD="python"
+else
+    echo "❌ Error: Python not found!"
+    exit 1
+fi
+
+echo "� Using Python: $PYTHON_CMD"
+
+echo "�📦 Installing PyInstaller..."
+$PYTHON_CMD -m pip install pyinstaller
 
 echo "🔨 Building executable..."
 mkdir -p "dist/executables"
 mkdir -p "build/temp" 
 mkdir -p "build/specs"
 
+# Additional flags for macOS
+EXTRA_FLAGS=""
+if [ "$OS" = "darwin" ]; then
+    EXTRA_FLAGS="--osx-bundle-identifier com.univer.cli-assistant --icon src/cli_assistant/icon.png"
+else
+    EXTRA_FLAGS="--icon src/cli_assistant/icon.png"
+fi
+
 pyinstaller --onefile \
     --name "$EXE_NAME" \
     --distpath "dist/executables" \
     --workpath "build/temp" \
     --specpath "build/specs" \
+    $EXTRA_FLAGS \
     "src/cli_assistant/main.py"
 
 if [ -f "dist/executables/$EXE_NAME" ]; then

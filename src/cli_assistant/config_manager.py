@@ -13,6 +13,7 @@ import platform
 from dataclasses import dataclass
 from typing import Optional, Dict, Any
 
+
 @dataclass
 class OpenAIConfig:
     """Конфігурація для OpenAI API."""
@@ -23,6 +24,18 @@ class OpenAIConfig:
     temperature: float = 0.7  # Параметр креативності
     top_p: float = 1.0  # Параметр nucleus sampling
     timeout: int = 30  # Таймаут для API запитів (секунди)
+
+
+@dataclass
+class ModelConfig:
+    """Конфігурація для локальних моделей."""
+
+    model_name: str = "microsoft/DialoGPT-medium"  # Назва моделі
+    cache_dir: Optional[str] = None  # Директорія для кешу моделей
+    trust_remote_code: bool = False  # Чи довіряти віддаленому коду
+    use_fast_tokenizer: bool = True  # Використовувати швидкий токенізатор
+    torch_dtype: str = "auto"  # Тип даних для PyTorch
+    low_cpu_mem_usage: bool = True  # Низьке використання оперативної пам'яті
 
 
 @dataclass
@@ -71,6 +84,8 @@ class ConfigurationManager:
             self._setup_logging()  # Спочатку налаштовуємо логування
             self._setup_provider_config()  # Потім провайдер AI
             self._setup_openai_config()  # Налаштовуємо OpenAI
+            self._setup_model_config()  # Налаштовуємо локальні моделі
+            self._setup_system_config()  # Налаштовуємо систему
             ConfigurationManager._initialized = True
 
     def _setup_logging(self) -> None:
@@ -133,7 +148,58 @@ class ConfigurationManager:
             else:
                 pass
 
-    
+    def _setup_model_config(self) -> None:
+        """Налаштовує конфігурацію локальних моделей."""
+        self.model_config = ModelConfig(
+            model_name=os.getenv("LOCAL_MODEL_NAME", "microsoft/DialoGPT-medium"),
+            cache_dir=os.getenv("MODEL_CACHE_DIR"),
+            trust_remote_code=os.getenv("TRUST_REMOTE_CODE", "false").lower() == "true",
+            use_fast_tokenizer=os.getenv("USE_FAST_TOKENIZER", "true").lower()
+            == "true",
+            torch_dtype=os.getenv("TORCH_DTYPE", "auto"),
+            low_cpu_mem_usage=os.getenv("LOW_CPU_MEM_USAGE", "true").lower() == "true",
+        )
+
+    def _setup_system_config(self) -> None:
+        """Налаштовує системну конфігурацію та виявляє пристрої."""
+        # Визначаємо операційну систему
+        system_platform = platform.system().lower()
+
+        # Визначаємо тип пристрою
+        device_type = "cpu"  # За замовчуванням CPU
+        device_info = "CPU"
+        device_map = None
+
+        # Перевіряємо наявність CUDA (NVIDIA GPU)
+        try:
+            import torch
+
+            if torch.cuda.is_available():
+                device_type = "cuda"
+                device_info = f"CUDA GPU: {torch.cuda.get_device_name(0)}"
+                device_map = "auto"
+        except ImportError:
+            pass
+
+        # Для macOS перевіряємо MPS (Apple Silicon)
+        if system_platform == "darwin":
+            try:
+                import torch
+
+                if hasattr(torch.backends, "mps") and torch.backends.mps.is_available():
+                    device_type = "mps"
+                    device_info = "Apple Silicon GPU (MPS)"
+                    device_map = None
+            except (ImportError, AttributeError):
+                pass
+
+        self.system_config = SystemConfig(
+            platform=system_platform,
+            device_type=device_type,
+            device_map=device_map,
+            device_info=device_info,
+        )
+
     def get_openai_kwargs(self) -> Dict[str, Any]:
         """Отримує аргументи для OpenAI API."""
         return {
@@ -152,6 +218,25 @@ class ConfigurationManager:
             "do_sample": True,
             "pad_token_id": None,  # Буде встановлено в generate_local_response
         }
+
+    def get_model_kwargs(self) -> Dict[str, Any]:
+        """Отримує аргументи для завантаження локальних моделей."""
+        kwargs = {
+            "cache_dir": self.model_config.cache_dir,
+            "trust_remote_code": self.model_config.trust_remote_code,
+            "low_cpu_mem_usage": self.model_config.low_cpu_mem_usage,
+        }
+
+        # Додаємо torch_dtype якщо це не 'auto'
+        if self.model_config.torch_dtype != "auto":
+            kwargs["torch_dtype"] = self.model_config.torch_dtype
+
+        # Додаємо device_map якщо доступно
+        if self.system_config.device_map:
+            kwargs["device_map"] = self.system_config.device_map
+
+        # Видаляємо None значення
+        return {k: v for k, v in kwargs.items() if v is not None}
 
     def is_openai_enabled(self) -> bool:
         """Перевіряє чи включений та налаштований OpenAI провайдер."""

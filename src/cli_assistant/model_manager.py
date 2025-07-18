@@ -359,16 +359,7 @@ class ModelManager(LoggerMixin):
             self.tokenizer: Optional[Any] = None
             self.use_openai: bool = False
 
-            # Перевіряємо, чи треба використовувати OpenAI або локальну модель
-            # Читаємо змінну оточення USE_OPENAI
-            use_openai = os.getenv("USE_OPENAI", "true").lower() == "true"
-
-            if use_openai:
-                # Налаштовуємо OpenAI API
-                self._setup_openai()
-            else:
-                # Завантажуємо локальну модель
-                self._load_model()
+            self._setup_openai()
 
             # Налаштовуємо стратегії генерації
             self._setup_strategies()
@@ -395,42 +386,6 @@ class ModelManager(LoggerMixin):
         except Exception as e:
             self.logger.error(f"OpenAI setup error: {str(e)}")
             raise RuntimeError(f"OpenAI setup error: {str(e)}")
-
-    def _load_model(self) -> None:
-        """
-        Завантажує локальну AI модель та токенізатор.
-
-        Процес завантаження:
-        1. Отримання конфігурації моделі
-        2. Завантаження моделі через HuggingFace transformers
-        3. Завантаження відповідного токенізатора
-        4. Перенесення моделі на GPU (якщо доступно)
-        """
-        try:
-            # Отримуємо конфігурацію моделі та системи
-            model_config = self.config_manager.model_config
-            system_config = self.config_manager.system_config
-
-            # Отримуємо аргументи для завантаження моделі
-            model_kwargs = self.config_manager.get_model_kwargs()
-
-            
-            # Переносимо модель на відповідний пристрій (GPU) якщо:
-            # - не використовуємо accelerate (автоматичне управління пристроями)
-            # - пристрій не CPU
-            # - модель завантажена успішно
-            if (
-                not system_config.use_accelerate
-                and system_config.device_type != "cpu"
-                and self.model is not None
-            ):
-                self.model = self.model.to(system_config.device_type)
-
-        except Exception as e:
-            # Логуємо помилку в журнал для відладки
-            self.logger.error(f"Model loading error: {str(e)}")
-            # Піднімаємо runtime помилку з більш зрозумілим повідомленням
-            raise RuntimeError(f"Model loading error: {str(e)}")
 
     def _setup_strategies(self) -> None:
         """

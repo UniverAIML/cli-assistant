@@ -8,23 +8,31 @@ on:
 
 jobs:
   build:
-    name: Build for ${{ matrix.os }}
+    name: Build for ${{ matrix.os }} (${{ matrix.arch }})
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         include:
           - os: windows-latest
+            arch: x64
             artifact_name: cli-assistant-windows-x64.exe
             build_script: build.bat
+            python_version: '3.11'
           - os: ubuntu-latest
+            arch: x64
             artifact_name: cli-assistant-linux-x64
             build_script: build.sh
-          - os: macos-latest
+            python_version: '3.11'
+          - os: macos-13  # Intel macOS
+            arch: x64
             artifact_name: cli-assistant-macos-x64
             build_script: build.sh
-          - os: macos-14  # Apple Silicon
+            python_version: '3.11'
+          - os: macos-14  # Apple Silicon macOS
+            arch: arm64
             artifact_name: cli-assistant-macos-arm64
             build_script: build.sh
+            python_version: '3.11'
 
     steps:
     - uses: actions/checkout@v4
@@ -32,7 +40,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
-        python-version: '3.11'
+        python-version: ${{ matrix.python_version }}
 
     - name: Install Poetry
       uses: snok/install-poetry@v1
@@ -41,19 +49,41 @@ jobs:
         virtualenvs-create: true
         virtualenvs-in-project: true
 
+    - name: Copy macOS config (macOS only)
+      if: runner.os == 'macOS'
+      run: cp pyproject-mac.toml pyproject.toml
+
     - name: Install dependencies
       run: poetry install
-
-    - name: Make build script executable (Unix)
-      if: runner.os != 'Windows'
-      run: chmod +x ${{ matrix.build_script }}
 
     - name: Build executable
       run: |
         if [ "$RUNNER_OS" == "Windows" ]; then
-          ./${{ matrix.build_script }}
+          cmd //c "${{ matrix.build_script }}"
         else
+          chmod +x ${{ matrix.build_script }}
           ./${{ matrix.build_script }}
+        fi
+      shell: bash
+
+    - name: Verify build output
+      run: |
+        if [ "$RUNNER_OS" == "Windows" ]; then
+          if [ -f "dist/executables/${{ matrix.artifact_name }}" ]; then
+            echo "✅ Windows executable built successfully"
+            ls -la "dist/executables/${{ matrix.artifact_name }}"
+          else
+            echo "❌ Windows executable not found"
+            exit 1
+          fi
+        else
+          if [ -f "dist/executables/${{ matrix.artifact_name }}" ]; then
+            echo "✅ Unix executable built successfully"
+            ls -la "dist/executables/${{ matrix.artifact_name }}"
+          else
+            echo "❌ Unix executable not found"
+            exit 1
+          fi
         fi
       shell: bash
 

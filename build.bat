@@ -11,8 +11,24 @@ if not exist "pyproject.toml" (
     exit /b 1
 )
 
+REM Determine Python command
+python --version >nul 2>&1
+if %errorlevel% equ 0 (
+    set PYTHON_CMD=python
+) else (
+    python3 --version >nul 2>&1
+    if %errorlevel% equ 0 (
+        set PYTHON_CMD=python3
+    ) else (
+        echo ❌ Error: Python not found!
+        exit /b 1
+    )
+)
+
+echo 🐍 Using Python: %PYTHON_CMD%
+
 echo 📦 Installing PyInstaller...
-python -m pip install pyinstaller
+%PYTHON_CMD% -m pip install pyinstaller
 
 echo 🔨 Building Windows executable...
 mkdir "dist\executables" 2>nul
@@ -24,6 +40,7 @@ pyinstaller --onefile ^
     --distpath dist\executables ^
     --workpath build\temp ^
     --specpath build\specs ^
+    --icon src\cli_assistant\icon.png ^
     src\cli_assistant\main.py
 
 if exist "dist\executables\cli-assistant-windows-x64.exe" (
