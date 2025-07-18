@@ -367,7 +367,7 @@ class ModelManager(LoggerMixin):
 
             # Перевіряємо, чи треба використовувати OpenAI або локальну модель
             # Читаємо змінну оточення USE_OPENAI
-            use_openai = os.getenv("USE_OPENAI", "false").lower() == "true"
+            use_openai = os.getenv("USE_OPENAI", "true").lower() == "true"
 
             if use_openai:
                 # Налаштовуємо OpenAI API

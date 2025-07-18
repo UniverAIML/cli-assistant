@@ -16,16 +16,12 @@ from typing import List, Dict, Optional, Any, Tuple
 from datetime import datetime, timedelta
 
 import re
-import sys
 import os
 
-# Додаємо батьківську директорію до Python path для можливості імпортів
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
 # Імпорти моделей та менеджерів даних
-from database.contact_models import AddressBook, Record
-from database.note_models import NotesManager, Note
-from database.data_manager import DataManager
+from .database.contact_models import AddressBook, Record
+from .database.note_models import NotesManager, Note
+from .database.data_manager import DataManager
 
 
 class OperationsManager:

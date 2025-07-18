@@ -124,7 +124,7 @@ class ConfigurationManager:
     def _setup_provider_config(self) -> None:
         """Налаштовує конфігурацію AI провайдера на основі змінних оточення."""
         # Читаємо змінну оточення USE_OPENAI
-        use_openai = os.getenv("USE_OPENAI", "false").lower() == "true"
+        use_openai = os.getenv("USE_OPENAI", "true").lower() == "true"
         provider = "openai" if use_openai else "local"
 
         self.provider_config = ProviderConfig(provider=provider, use_openai=use_openai)

@@ -1,0 +1,25 @@
+# Включаємо додаткові файли в пакет
+include README.md
+include ARCHITECTURE.md
+include LICENSE
+include *.toml
+include *.ini
+include *.cfg
+
+# Включаємо всі JSON файли (для тестових даних)
+include *.json
+recursive-include tests *.json
+
+# Включаємо тести
+recursive-include tests *.py
+
+# Включаємо всі Python файли
+recursive-include src *.py
+
+# Виключаємо кеш файли
+global-exclude *.pyc
+global-exclude *.pyo
+global-exclude *.pyd
+global-exclude __pycache__
+global-exclude *.so
+global-exclude *.egg-info

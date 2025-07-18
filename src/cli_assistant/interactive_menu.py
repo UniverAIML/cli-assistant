@@ -26,8 +26,8 @@ from datetime import datetime
 # Локальні імпорти
 from .operations_manager import OperationsManager
 from .chat_assistant import ChatAssistant
-from database.contact_models import Record
-from database.note_models import Note
+from .database.contact_models import Record
+from .database.note_models import Note
 
 
 class InteractiveMenu:

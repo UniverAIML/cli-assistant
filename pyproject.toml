@@ -22,13 +22,16 @@ dependencies = [
 
 [project.scripts]
 cli-assistant = "cli_assistant.main:main"
+cli-assistant-chat = "cli_assistant.main:main_chat"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
-packages = [{include = "cli_assistant", from = "src"}]
+packages = [
+    {include = "cli_assistant", from = "src"},
+]
 
 [tool.poetry.dependencies]
 python = ">=3.9,<3.14"
@@ -61,6 +64,7 @@ types-colorama = "^0.4.15.20240311"
 
 [tool.poetry.scripts]
 cli-assistant = "cli_assistant.main:main"
+cli-assistant-chat = "cli_assistant.main:main_chat"
 
 [[tool.poetry.source]]
 name = "pytorch-gpu"
