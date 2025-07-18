@@ -1,0 +1,153 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*'  # Trigger on version tags like v1.0.0
+  workflow_dispatch:  # Allow manual trigger
+
+jobs:
+  build:
+    name: Build for ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            artifact_name: cli-assistant-windows-x64.exe
+            build_script: build.bat
+          - os: ubuntu-latest
+            artifact_name: cli-assistant-linux-x64
+            build_script: build.sh
+          - os: macos-latest
+            artifact_name: cli-assistant-macos-x64
+            build_script: build.sh
+          - os: macos-14  # Apple Silicon
+            artifact_name: cli-assistant-macos-arm64
+            build_script: build.sh
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install Poetry
+      uses: snok/install-poetry@v1
+      with:
+        version: latest
+        virtualenvs-create: true
+        virtualenvs-in-project: true
+
+    - name: Install dependencies
+      run: poetry install
+
+    - name: Make build script executable (Unix)
+      if: runner.os != 'Windows'
+      run: chmod +x ${{ matrix.build_script }}
+
+    - name: Build executable
+      run: |
+        if [ "$RUNNER_OS" == "Windows" ]; then
+          ./${{ matrix.build_script }}
+        else
+          ./${{ matrix.build_script }}
+        fi
+      shell: bash
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ matrix.artifact_name }}
+        path: dist/executables/${{ matrix.artifact_name }}
+
+  build-python-packages:
+    name: Build Python packages
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install Poetry
+      uses: snok/install-poetry@v1
+
+    - name: Build packages
+      run: poetry build
+
+    - name: Upload wheel
+      uses: actions/upload-artifact@v4
+      with:
+        name: python-wheel
+        path: dist/*.whl
+
+    - name: Upload source distribution
+      uses: actions/upload-artifact@v4
+      with:
+        name: python-sdist
+        path: dist/*.tar.gz
+
+  release:
+    name: Create Release
+    needs: [build, build-python-packages]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Download all artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: release-artifacts
+
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          release-artifacts/cli-assistant-windows-x64.exe/*
+          release-artifacts/cli-assistant-linux-x64/*
+          release-artifacts/cli-assistant-macos-x64/*
+          release-artifacts/cli-assistant-macos-arm64/*
+          release-artifacts/python-wheel/*
+          release-artifacts/python-sdist/*
+        body: |
+          ## CLI Assistant Release ${{ github.ref_name }}
+          
+          ### 🎯 Available Downloads:
+          
+          #### Standalone Executables:
+          - **Windows x64**: `cli-assistant-windows-x64.exe`
+          - **Linux x64**: `cli-assistant-linux-x64`
+          - **macOS Intel**: `cli-assistant-macos-x64`
+          - **macOS Apple Silicon**: `cli-assistant-macos-arm64`
+          
+          #### Python Packages:
+          - **Wheel**: `.whl` file for pip installation
+          - **Source**: `.tar.gz` source distribution
+          
+          ### 🚀 Quick Start:
+          
+          #### Option 1: Download Executable
+          Download the appropriate executable for your platform and run directly.
+          
+          #### Option 2: Install via pip
+          ```bash
+          pip install cli_assistant-*.whl
+          ```
+          
+          ### 📋 System Requirements:
+          - No Python required for standalone executables
+          - Python 3.9+ required for wheel installation
+          
+          ### 🐛 Bug Fixes & Improvements:
+          See CHANGELOG.md for detailed changes.
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

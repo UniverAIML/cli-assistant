@@ -12,22 +12,6 @@ import os
 import platform
 from dataclasses import dataclass
 from typing import Optional, Dict, Any
-import torch
-
-
-@dataclass
-class ModelConfig:
-    """Конфігурація для AI моделі."""
-
-    model_name: str = "Qwen/Qwen2.5-Coder-3B-Instruct"  # Назва моделі з HuggingFace Hub
-    max_new_tokens: int = 300  # Максимальна кількість нових токенів для генерації
-    temperature: float = (
-        0.3  # Параметр креативності (0.0 - детермінований, 1.0 - творчий)
-    )
-    do_sample: bool = True  # Використовувати sampling замість greedy decoding
-    torch_dtype: str = "auto"  # Тип даних PyTorch для моделі
-    trust_remote_code: bool = True  # Дозволити виконання коду з репозиторію
-
 
 @dataclass
 class OpenAIConfig:
@@ -55,9 +39,7 @@ class SystemConfig:
 
     platform: str  # Операційна система (windows, linux, darwin)
     device_type: str  # Тип пристрою (cpu, cuda, mps)
-    torch_dtype: torch.dtype  # Тип даних PyTorch для обчислень
     device_map: Optional[str]  # Мапа пристроїв для розподілу моделі
-    use_accelerate: bool  # Чи використовувати бібліотеку accelerate
     device_info: str  # Детальна інформація про пристрій
 
 
@@ -88,8 +70,6 @@ class ConfigurationManager:
             # Послідовність ініціалізації важлива
             self._setup_logging()  # Спочатку налаштовуємо логування
             self._setup_provider_config()  # Потім провайдер AI
-            self._detect_system_config()  # Виявляємо системні можливості
-            self._setup_model_config()  # Налаштовуємо модель
             self._setup_openai_config()  # Налаштовуємо OpenAI
             ConfigurationManager._initialized = True
 
@@ -129,54 +109,6 @@ class ConfigurationManager:
 
         self.provider_config = ProviderConfig(provider=provider, use_openai=use_openai)
 
-    def _detect_system_config(self) -> None:
-        """Виявляє оптимальну системну конфігурацію для завантаження моделі."""
-        system_platform = platform.system().lower()
-        cuda_available = torch.cuda.is_available()
-        # Перевіряємо наявність Apple Silicon MPS
-        mps_available = (
-            torch.backends.mps.is_available()
-            if hasattr(torch.backends, "mps")
-            else False
-        )
-
-        # Визначаємо оптимальну конфігурацію пристрою
-        if system_platform == "darwin" and mps_available:
-            # macOS з Apple Silicon (M1/M2/M3)
-            device_type = "mps"
-            torch_dtype = torch.float16  # Половинна точність для економії пам'яті
-            device_map = None  # MPS не підтримує device_map
-            use_accelerate = False  # Не потрібно для MPS
-            device_info = f"Platform: macOS, MPS available: {mps_available}"
-        elif cuda_available and system_platform in ["windows", "linux"]:
-            # Windows/Linux з NVIDIA GPU
-            device_type = "cuda"
-            torch_dtype = torch.float16  # Половинна точність для GPU
-            device_map = "auto"  # Автоматичне розподілення по GPU
-            use_accelerate = True  # Використовуємо accelerate для оптимізації
-            device_info = f"Platform: {system_platform}, CUDA available: {cuda_available}, GPU count: {torch.cuda.device_count()}, Current device: {torch.cuda.get_device_name()}"
-        else:
-            # Резервний варіант CPU для будь-якої платформи
-            device_type = "cpu"
-            torch_dtype = torch.float32  # Повна точність для CPU
-            device_map = None  # CPU не потребує device_map
-            use_accelerate = False  # Не потрібно для CPU
-            device_info = f"Platform: {system_platform}, Using CPU mode"
-
-        # Створюємо конфігурацію системи
-        self.system_config = SystemConfig(
-            platform=system_platform,
-            device_type=device_type,
-            torch_dtype=torch_dtype,
-            device_map=device_map,
-            use_accelerate=use_accelerate,
-            device_info=device_info,
-        )
-
-    def _setup_model_config(self) -> None:
-        """Налаштовує конфігурацію моделі."""
-        self.model_config = ModelConfig()
-
     def _setup_openai_config(self) -> None:
         """Налаштовує конфігурацію OpenAI на основі змінних оточення."""
         # Читаємо налаштування з змінних оточення
@@ -201,27 +133,7 @@ class ConfigurationManager:
             else:
                 pass
 
-    def get_model_kwargs(self) -> Dict[str, Any]:
-        """Отримує аргументи для завантаження моделі на основі системної конфігурації."""
-        model_kwargs = {
-            "torch_dtype": self.model_config.torch_dtype,
-            "trust_remote_code": self.model_config.trust_remote_code,
-        }
-
-        # Додаємо device_map тільки якщо використовуємо accelerate
-        if self.system_config.use_accelerate:
-            model_kwargs["device_map"] = self.system_config.device_map
-
-        return model_kwargs
-
-    def get_generation_kwargs(self) -> Dict[str, Any]:
-        """Отримує аргументи для генерації тексту."""
-        return {
-            "max_new_tokens": self.model_config.max_new_tokens,
-            "temperature": self.model_config.temperature,
-            "do_sample": self.model_config.do_sample,
-        }
-
+    
     def get_openai_kwargs(self) -> Dict[str, Any]:
         """Отримує аргументи для OpenAI API."""
         return {
@@ -229,6 +141,16 @@ class ConfigurationManager:
             "max_tokens": self.openai_config.max_tokens,
             "temperature": self.openai_config.temperature,
             "top_p": self.openai_config.top_p,
+        }
+
+    def get_generation_kwargs(self) -> Dict[str, Any]:
+        """Отримує параметри генерації для локальних моделей."""
+        return {
+            "max_new_tokens": self.openai_config.max_tokens,
+            "temperature": self.openai_config.temperature,
+            "top_p": self.openai_config.top_p,
+            "do_sample": True,
+            "pad_token_id": None,  # Буде встановлено в generate_local_response
         }
 
     def is_openai_enabled(self) -> bool:

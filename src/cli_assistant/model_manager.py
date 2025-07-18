@@ -10,12 +10,6 @@ from abc import ABC, abstractmethod
 from typing import Dict, List, Any, Optional, Union, cast, Literal
 from typing_extensions import TypedDict
 
-# Бібліотека для роботи з GPU та машинним навчанням
-import torch
-
-# Бібліотека HuggingFace для роботи з трансформерами
-from transformers import AutoTokenizer, AutoModelForCausalLM
-
 # Стандартні бібліотеки Python
 import os
 import json
@@ -420,14 +414,7 @@ class ModelManager(LoggerMixin):
             # Отримуємо аргументи для завантаження моделі
             model_kwargs = self.config_manager.get_model_kwargs()
 
-            # Завантажуємо модель з HuggingFace Hub
-            self.model = AutoModelForCausalLM.from_pretrained(
-                model_config.model_name, **model_kwargs
-            )
-
-            # Завантажуємо токенізатор для цієї моделі
-            self.tokenizer = AutoTokenizer.from_pretrained(model_config.model_name)
-
+            
             # Переносимо модель на відповідний пристрій (GPU) якщо:
             # - не використовуємо accelerate (автоматичне управління пристроями)
             # - пристрій не CPU

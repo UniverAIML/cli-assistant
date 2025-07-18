@@ -12,8 +12,14 @@ from colorama import init
 init(autoreset=True)
 
 # Локальні імпорти компонентів нашого додатку
-from .chat_assistant import ChatAssistant
-from .interactive_menu import InteractiveMenu
+try:
+    # Для звичайного запуску
+    from .chat_assistant import ChatAssistant
+    from .interactive_menu import InteractiveMenu
+except ImportError:
+    # Для PyInstaller та standalone запуску
+    from cli_assistant.chat_assistant import ChatAssistant
+    from cli_assistant.interactive_menu import InteractiveMenu
 
 
 def main(args: Optional[List[str]] = None) -> None:

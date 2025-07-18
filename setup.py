@@ -38,11 +38,6 @@ setup(
     include_package_data=True,
     python_requires=">=3.9,<3.14",
     install_requires=[
-        "transformers>=4.50.0",
-        "tokenizers>=0.19.0",
-        "numpy>=1.24.0,<2.0",
-        "regex>=2023.12.25",
-        "torch>=2.7.1,<3.0.0",
         "openai>=1.97.0,<2.0.0",
         "colorama>=0.4.6,<0.5.0",
         "questionary>=2.0.0,<3.0.0",
