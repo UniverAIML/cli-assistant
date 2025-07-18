@@ -83,7 +83,7 @@ class FunctionDefinitions:
                 "properties": {
                     "name": {
                         "type": "string",
-                        "description": "The name of the contact (required) \"^[a-zA-Z\\s\\-']{1,100}$\"",
+                        "description": 'The name of the contact (required) "^[a-zA-Z\\s\\-\']{1,100}$"',
                     },
                     "phones": {
                         "type": "array",

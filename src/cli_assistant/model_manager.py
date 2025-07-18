@@ -44,7 +44,9 @@ class ToolMessage(TypedDict):
 
 
 # Union type for all possible message types
-MessageType = Union[SystemMessage, UserMessage, AssistantMessage, AssistantToolCallMessage, ToolMessage]
+MessageType = Union[
+    SystemMessage, UserMessage, AssistantMessage, AssistantToolCallMessage, ToolMessage
+]
 
 
 class ResponseStrategy(ABC):
@@ -114,7 +116,7 @@ class OpenAIStrategy(ResponseStrategy):
         try:
             if not self.client:
                 raise RuntimeError("OpenAI client not initialized")
-                
+
             # Import function definitions
             from .function_definitions import FunctionDefinitions
 
@@ -136,29 +138,54 @@ class OpenAIStrategy(ResponseStrategy):
             openai_messages: List[ChatCompletionMessageParam] = []
             for msg in messages:
                 if msg["role"] == "system":
-                    openai_messages.append(cast(ChatCompletionMessageParam, {"role": "system", "content": msg["content"]}))
+                    openai_messages.append(
+                        cast(
+                            ChatCompletionMessageParam,
+                            {"role": "system", "content": msg["content"]},
+                        )
+                    )
                 elif msg["role"] == "user":
-                    openai_messages.append(cast(ChatCompletionMessageParam, {"role": "user", "content": msg["content"]}))
+                    openai_messages.append(
+                        cast(
+                            ChatCompletionMessageParam,
+                            {"role": "user", "content": msg["content"]},
+                        )
+                    )
                 elif msg["role"] == "assistant":
                     if "tool_calls" in msg:
                         # Assistant message with tool calls
-                        openai_messages.append(cast(ChatCompletionMessageParam, {
-                            "role": "assistant",
-                            "content": msg.get("content"),
-                            "tool_calls": msg["tool_calls"]
-                        }))
+                        openai_messages.append(
+                            cast(
+                                ChatCompletionMessageParam,
+                                {
+                                    "role": "assistant",
+                                    "content": msg.get("content"),
+                                    "tool_calls": msg["tool_calls"],
+                                },
+                            )
+                        )
                     else:
                         # Regular assistant message
-                        openai_messages.append(cast(ChatCompletionMessageParam, {"role": "assistant", "content": msg["content"]}))
+                        openai_messages.append(
+                            cast(
+                                ChatCompletionMessageParam,
+                                {"role": "assistant", "content": msg["content"]},
+                            )
+                        )
                 elif msg["role"] == "tool":
                     # Tool message with result
-                    openai_messages.append(cast(ChatCompletionMessageParam, {
-                        "role": "tool",
-                        "tool_call_id": msg["tool_call_id"],
-                        "name": msg["name"],
-                        "content": msg["content"]
-                    }))
-            
+                    openai_messages.append(
+                        cast(
+                            ChatCompletionMessageParam,
+                            {
+                                "role": "tool",
+                                "tool_call_id": msg["tool_call_id"],
+                                "name": msg["name"],
+                                "content": msg["content"],
+                            },
+                        )
+                    )
+
             # Create the API call with proper parameters
             response = self.client.chat.completions.create(
                 model=self.model_name,
@@ -260,9 +287,11 @@ class ModelManager(LoggerMixin):
             self.tokenizer = AutoTokenizer.from_pretrained(model_config.model_name)
 
             # Move model to appropriate device if not using accelerate
-            if (not system_config.use_accelerate and 
-                system_config.device_type != "cpu" and 
-                self.model is not None):
+            if (
+                not system_config.use_accelerate
+                and system_config.device_type != "cpu"
+                and self.model is not None
+            ):
                 self.model = self.model.to(system_config.device_type)
 
             self.logger.info("Model loaded successfully")

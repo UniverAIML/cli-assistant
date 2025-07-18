@@ -68,11 +68,14 @@ class AddContactCommand(BaseCommand):
         phones = self.arguments.get("phones", [])
         birthday = self.arguments.get("birthday", "")
         try:
-            result = FunctionResult(True, self.assistant.add_contact(name, phones, birthday))
+            result = FunctionResult(
+                True, self.assistant.add_contact(name, phones, birthday)
+            )
         except Exception as e:
             result = FunctionResult(False, str(e))
-        
+
         return result
+
 
 class SearchContactsCommand(BaseCommand):
     """Command for searching contacts."""

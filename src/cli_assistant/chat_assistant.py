@@ -37,18 +37,18 @@ class ChatAssistant(LoggerMixin):
     def colorize_text(self, text: str) -> str:
         """Convert color markers to colorama colors."""
         color_map = {
-            '[GREEN]': Fore.GREEN,
-            '[RED]': Fore.RED,
-            '[BLUE]': Fore.BLUE,
-            '[YELLOW]': Fore.YELLOW,
-            '[MAGENTA]': Fore.MAGENTA,
-            '[CYAN]': Fore.CYAN,
-            '[RESET]': Style.RESET_ALL
+            "[GREEN]": Fore.GREEN,
+            "[RED]": Fore.RED,
+            "[BLUE]": Fore.BLUE,
+            "[YELLOW]": Fore.YELLOW,
+            "[MAGENTA]": Fore.MAGENTA,
+            "[CYAN]": Fore.CYAN,
+            "[RESET]": Style.RESET_ALL,
         }
-        
+
         for marker, color in color_map.items():
             text = text.replace(marker, color)
-        
+
         return text
 
     def welcome_message(self) -> str:
@@ -69,9 +69,9 @@ class ChatAssistant(LoggerMixin):
                     arguments = json.loads(arguments_json)
 
                     function_call = {
-                        "function": function_name, 
+                        "function": function_name,
                         "arguments": arguments,
-                        "tool_call_id": f"call_{function_name}_{hash(arguments_json) % 10000}"
+                        "tool_call_id": f"call_{function_name}_{hash(arguments_json) % 10000}",
                     }
                     print(f"🔍 Debug - Found OpenAI function call: {function_call}")
                     return function_call
@@ -87,7 +87,9 @@ class ChatAssistant(LoggerMixin):
                 function_call = json.loads(json_match.group(1))
                 # Add tool_call_id if not present
                 if "tool_call_id" not in function_call:
-                    function_call["tool_call_id"] = f"call_{function_call.get('function', 'unknown')}_{hash(json_match.group(1)) % 10000}"
+                    function_call["tool_call_id"] = (
+                        f"call_{function_call.get('function', 'unknown')}_{hash(json_match.group(1)) % 10000}"
+                    )
                 # print(f"🔍 Debug - Found JSON in code block: {function_call}")  # Debug line
                 return function_call  # type: ignore[no-any-return]
             except json.JSONDecodeError as e:
@@ -102,7 +104,9 @@ class ChatAssistant(LoggerMixin):
                 function_call = json.loads(json_match.group(0))
                 # Add tool_call_id if not present
                 if "tool_call_id" not in function_call:
-                    function_call["tool_call_id"] = f"call_{function_call.get('function', 'unknown')}_{hash(json_match.group(0)) % 10000}"
+                    function_call["tool_call_id"] = (
+                        f"call_{function_call.get('function', 'unknown')}_{hash(json_match.group(0)) % 10000}"
+                    )
                 # print(f"🔍 Debug - Found JSON without code block: {function_call}")  # Debug line
                 return function_call  # type: ignore[no-any-return]
             except json.JSONDecodeError as e:
@@ -121,7 +125,9 @@ class ChatAssistant(LoggerMixin):
                 function_call = json.loads(json_str)
                 # Add tool_call_id if not present
                 if "tool_call_id" not in function_call:
-                    function_call["tool_call_id"] = f"call_{function_call.get('function', 'unknown')}_{hash(json_str) % 10000}"
+                    function_call["tool_call_id"] = (
+                        f"call_{function_call.get('function', 'unknown')}_{hash(json_str) % 10000}"
+                    )
                 print(
                     f"\033[90m🔍 Debug - Found JSON-like structure: {function_call}\033[0m"
                 )  # Debug line
@@ -167,34 +173,42 @@ class ChatAssistant(LoggerMixin):
                 assistant_tool_message = {
                     "role": "assistant",
                     "content": assistant_response,
-                    "tool_calls": [{
-                        "id": function_call.get('tool_call_id', f"call_{function_call['function']}"),
-                        "type": "function",
-                        "function": {
-                            "name": function_call['function'],
-                            "arguments": json.dumps(function_call['arguments'])
+                    "tool_calls": [
+                        {
+                            "id": function_call.get(
+                                "tool_call_id", f"call_{function_call['function']}"
+                            ),
+                            "type": "function",
+                            "function": {
+                                "name": function_call["function"],
+                                "arguments": json.dumps(function_call["arguments"]),
+                            },
                         }
-                    }]
+                    ],
                 }
-                
+
                 # Create a copy of messages to avoid modifying original
                 messages_copy = messages.copy()
                 messages_copy.append(assistant_tool_message)  # type: ignore
-                
+
                 # Add the function result as a tool message
                 tool_message = {
-                    "role": "tool", 
-                    "tool_call_id": function_call.get('tool_call_id', f"call_{function_call['function']}"),
-                    "name": function_call['function'],
-                    "content": function_result
+                    "role": "tool",
+                    "tool_call_id": function_call.get(
+                        "tool_call_id", f"call_{function_call['function']}"
+                    ),
+                    "name": function_call["function"],
+                    "content": function_result,
                 }
                 messages_copy.append(tool_message)  # type: ignore
 
                 # Generate final response based on function result
-                final_response = self.model_manager.generate_function_calling_response(messages_copy)
-                
+                final_response = self.model_manager.generate_function_calling_response(
+                    messages_copy
+                )
+
                 return final_response
-                
+
             else:
                 # If no function call, check for keyword-based commands (fallback)
                 if "help" in user_input.lower() and (
@@ -222,7 +236,7 @@ class ChatAssistant(LoggerMixin):
 
         # Let the function calling model handle everything
         response = self.generate_function_calling_response(user_input)
-        
+
         # Apply color processing to the response
         return self.colorize_text(response)
 
