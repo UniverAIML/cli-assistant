@@ -167,11 +167,11 @@ class AssistantStub:
     def add_contact(
         self,
         name: Optional[str] = None,
-        phone: Optional[str] = None,
+        phones: Optional[List[str]] = None,
         birthday: Optional[str] = None,
     ) -> str:
         """Add a new contact with validation."""
-        params = {"name": name, "phone": phone, "birthday": birthday}
+        params = {"name": name, "phones": phones, "birthday": birthday}
         self._log_method_call("add_contact", params)
 
         # If no name provided, this is a stub call from old tests
@@ -182,9 +182,11 @@ class AssistantStub:
             # Create new record
             record = Record(name)
 
-            # Add phone if provided
-            if phone:
-                record.add_phone(phone)
+            # Add phones if provided
+            if phones:
+                for phone in phones:
+                    if phone:  # Skip empty phone numbers
+                        record.add_phone(phone)
 
             # Add birthday if provided
             if birthday:
@@ -193,7 +195,8 @@ class AssistantStub:
             # Add to address book
             self.address_book.add_record(record)
 
-            return f"Contact '{name}' added successfully."
+            phone_count = len(phones) if phones else 0
+            return f"Contact '{name}' added successfully with {phone_count} phone(s)."
 
         except ValueError as e:
             return f"Error adding contact: {str(e)}"

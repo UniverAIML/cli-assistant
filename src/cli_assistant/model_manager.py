@@ -4,6 +4,12 @@ from abc import ABC, abstractmethod
 from typing import Dict, List, Any, Optional
 import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM
+import os
+try:
+    import openai
+    OPENAI_AVAILABLE = True
+except ImportError:
+    OPENAI_AVAILABLE = False
 
 from .config_manager import ConfigurationManager, LoggerMixin
 from .function_definitions import FunctionDefinitions
@@ -96,6 +102,45 @@ class ContextualResponseStrategy(ResponseStrategy):
         return response.strip()
 
 
+class OpenAIStrategy(ResponseStrategy):
+    """Strategy for generating responses using OpenAI API."""
+    
+    def __init__(self, api_key: Optional[str] = None, model: str = "gpt-3.5-turbo"):
+        if not OPENAI_AVAILABLE:
+            raise ImportError("OpenAI library not available. Install with: poetry add openai")
+        
+        # Use API key from parameter, environment variable, or default
+        self.api_key = api_key or os.getenv("OPENAI_API_KEY")
+        if not self.api_key:
+            raise ValueError("OpenAI API key not provided. Set OPENAI_API_KEY environment variable or pass api_key parameter.")
+        
+        self.model_name = model
+        self.client = openai.OpenAI(api_key=self.api_key)
+    
+    def generate_response(
+        self, 
+        model: Any,  # Not used for OpenAI, but kept for interface compatibility
+        tokenizer: Any,  # Not used for OpenAI, but kept for interface compatibility
+        messages: List[Dict[str, str]], 
+        **kwargs: Any
+    ) -> str:
+        """Generate response using OpenAI API."""
+        try:
+            # Convert messages to OpenAI format (they're already compatible)
+            response = self.client.chat.completions.create(
+                model=self.model_name,
+                messages=messages,
+                max_tokens=kwargs.get("max_tokens", 1000),
+                temperature=kwargs.get("temperature", 0.7),
+                top_p=kwargs.get("top_p", 1.0),
+            )
+            
+            return response.choices[0].message.content.strip()
+            
+        except Exception as e:
+            raise RuntimeError(f"OpenAI API error: {str(e)}")
+
+
 class ModelManager(LoggerMixin):
     """
     Manages AI model loading and inference using Strategy pattern.
@@ -113,9 +158,34 @@ class ModelManager(LoggerMixin):
     def __init__(self) -> None:
         if not self._model_loaded:
             self.config_manager = ConfigurationManager()
-            self._load_model()
+            
+            # Check if we should use OpenAI or local model
+            use_openai = os.getenv("USE_OPENAI", "false").lower() == "true"
+            
+            if use_openai and OPENAI_AVAILABLE:
+                self._setup_openai()
+            else:
+                self._load_model()
+            
             self._setup_strategies()
             ModelManager._model_loaded = True
+
+    def _setup_openai(self) -> None:
+        """Setup OpenAI API instead of loading local model."""
+        try:
+            openai_model = os.getenv("OPENAI_MODEL", "gpt-3.5-turbo")
+            self.logger.info(f"Using OpenAI model: {openai_model}")
+            
+            # Create dummy model and tokenizer attributes for compatibility
+            self.model = None
+            self.tokenizer = None
+            self.use_openai = True
+            
+            self.logger.info("OpenAI API configured successfully")
+            
+        except Exception as e:
+            self.logger.error(f"Failed to setup OpenAI: {str(e)}")
+            raise RuntimeError(f"Failed to setup OpenAI: {str(e)}")
 
     def _load_model(self) -> None:
         """Load the AI model and tokenizer."""
@@ -145,8 +215,15 @@ class ModelManager(LoggerMixin):
 
     def _setup_strategies(self) -> None:
         """Setup response generation strategies."""
-        self.function_calling_strategy = FunctionCallingStrategy()
-        self.contextual_strategy = ContextualResponseStrategy()
+        if hasattr(self, 'use_openai') and self.use_openai:
+            # Setup OpenAI strategies
+            openai_model = os.getenv("OPENAI_MODEL", "gpt-3.5-turbo")
+            self.function_calling_strategy = OpenAIStrategy(model=openai_model)
+            self.contextual_strategy = OpenAIStrategy(model=openai_model)
+        else:
+            # Setup local model strategies
+            self.function_calling_strategy = FunctionCallingStrategy()
+            self.contextual_strategy = ContextualResponseStrategy()
 
     def generate_function_calling_response(self, messages: List[Dict[str, str]]) -> str:
         """Generate response using function calling strategy."""

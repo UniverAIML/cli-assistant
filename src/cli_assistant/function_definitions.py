@@ -2,15 +2,17 @@
 
 from typing import Dict, Any
 
+# ALWAYS TRY CALL THE TOOL WITHOUT ANY ADDITIONAL TEXT OR EXPLANATION.
+# USE ONLY AVAILABLE FUNCTIONS:
+# add_contact,search_contacts,show_contacts,edit_contact,delete_contact,view_contact_details,get_upcoming_birthdays,get_statistics,add_note,search_notes,show_notes,edit_note,delete_note,view_note_details,search_notes_by_tag,global_search
+
+
 
 class FunctionDefinitions:
     """Class containing system prompts and function definitions for the Chat Assistant."""
 
     SYSTEM_PROMPT = """You are a helpful CLI assistant that manages contacts and notes. When a user asks you to perform an action, respond with a JSON function call in this exact format:
 
-ALWAYS TRY CALL THE TOOL WITHOUT ANY ADDITIONAL TEXT OR EXPLANATION.
-USE ONLY AVAILABLE FUNCTIONS:
-add_contact,search_contacts,show_contacts,edit_contact,delete_contact,view_contact_details,get_upcoming_birthdays,get_statistics,add_note,search_notes,show_notes,edit_note,delete_note,view_note_details,search_notes_by_tag,global_search
 
 
 RESPONSE:

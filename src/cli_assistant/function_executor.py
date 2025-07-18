@@ -71,7 +71,7 @@ class AddContactCommand(BaseCommand):
         if not name:
             return FunctionResult(False, "❌ Contact name is required")
 
-        self.assistant.add_contact()
+        self.assistant.add_contact(name, phones, birthday)
 
         message = f"✅ Successfully added contact: {name}"
         if phones:

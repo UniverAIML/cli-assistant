@@ -21,6 +21,26 @@ class ModelConfig:
 
 
 @dataclass
+class OpenAIConfig:
+    """Configuration for OpenAI API."""
+    
+    api_key: Optional[str] = None
+    model_name: str = "gpt-3.5-turbo"
+    max_tokens: int = 1000
+    temperature: float = 0.7
+    top_p: float = 1.0
+    timeout: int = 30
+
+
+@dataclass
+class ProviderConfig:
+    """Configuration for AI provider selection."""
+    
+    provider: str = "local"  # "local" or "openai"
+    use_openai: bool = False
+
+
+@dataclass
 class SystemConfig:
     """System configuration for device detection and optimization."""
 
@@ -46,8 +66,10 @@ class ConfigurationManager:
     def __init__(self) -> None:
         if not self._initialized:
             self._setup_logging()
+            self._setup_provider_config()
             self._detect_system_config()
             self._setup_model_config()
+            self._setup_openai_config()
             ConfigurationManager._initialized = True
 
     def _setup_logging(self) -> None:
@@ -72,6 +94,18 @@ class ConfigurationManager:
             format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
         )
         self.logger = logging.getLogger(__name__)
+
+    def _setup_provider_config(self) -> None:
+        """Setup AI provider configuration based on environment variables."""
+        use_openai = os.getenv("USE_OPENAI", "false").lower() == "true"
+        provider = "openai" if use_openai else "local"
+        
+        self.provider_config = ProviderConfig(
+            provider=provider,
+            use_openai=use_openai
+        )
+        
+        self.logger.info(f"AI Provider: {provider}")
 
     def _detect_system_config(self) -> None:
         """Detect optimal system configuration for model loading."""
@@ -121,6 +155,26 @@ class ConfigurationManager:
         """Setup model configuration."""
         self.model_config = ModelConfig()
 
+    def _setup_openai_config(self) -> None:
+        """Setup OpenAI configuration based on environment variables."""
+        api_key = os.getenv("OPENAI_API_KEY")
+        model_name = os.getenv("OPENAI_MODEL", "gpt-3.5-turbo")
+        
+        self.openai_config = OpenAIConfig(
+            api_key=api_key,
+            model_name=model_name,
+            max_tokens=int(os.getenv("OPENAI_MAX_TOKENS", "1000")),
+            temperature=float(os.getenv("OPENAI_TEMPERATURE", "0.7")),
+            top_p=float(os.getenv("OPENAI_TOP_P", "1.0")),
+            timeout=int(os.getenv("OPENAI_TIMEOUT", "30"))
+        )
+        
+        if self.provider_config.use_openai:
+            if not api_key:
+                self.logger.warning("OpenAI API key not found. Set OPENAI_API_KEY environment variable.")
+            else:
+                self.logger.info(f"OpenAI model configured: {model_name}")
+
     def get_model_kwargs(self) -> Dict[str, Any]:
         """Get model loading arguments based on system configuration."""
         model_kwargs = {
@@ -140,6 +194,23 @@ class ConfigurationManager:
             "temperature": self.model_config.temperature,
             "do_sample": self.model_config.do_sample,
         }
+
+    def get_openai_kwargs(self) -> Dict[str, Any]:
+        """Get OpenAI API arguments."""
+        return {
+            "model": self.openai_config.model_name,
+            "max_tokens": self.openai_config.max_tokens,
+            "temperature": self.openai_config.temperature,
+            "top_p": self.openai_config.top_p,
+        }
+
+    def is_openai_enabled(self) -> bool:
+        """Check if OpenAI provider is enabled and configured."""
+        return self.provider_config.use_openai and self.openai_config.api_key is not None
+
+    def get_provider_type(self) -> str:
+        """Get the current AI provider type."""
+        return self.provider_config.provider
 
 
 class LoggerMixin:
