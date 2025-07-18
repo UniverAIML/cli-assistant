@@ -197,3 +197,16 @@ class AssistantStub:
     def delete_note(self) -> None:
         """Delete a note."""
         self._log_method_call("delete_note", {})
+    
+    def display_contacts_table(self) -> None:
+        """Display contacts in table format."""
+        self._log_method_call("display_contacts_table", {})
+    
+    def display_notes_table(self) -> None:
+        """Display notes in table format."""
+        self._log_method_call("display_notes_table", {})
+    
+    def get_statistics(self) -> Dict[str, Any]:
+        """Get system statistics."""
+        self._log_method_call("get_statistics", {})
+        return {}

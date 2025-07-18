@@ -23,7 +23,7 @@ class NoteData(TypedDict):
 class Note:
     """Class for storing note information including title, content, tags and timestamps."""
 
-    def __init__(self, title: str, content: str = "", tags: List[str] = None) -> None:
+    def __init__(self, title: str, content: str = "", tags: Optional[List[str]] = None) -> None:
         if not title or not title.strip():
             raise ValueError("Note title cannot be empty")
 
@@ -126,7 +126,7 @@ class NotesManager(UserDict[str, Note]):
         self.data[note_id] = note
         return note_id
 
-    def create_note(self, title: str, content: str = "", tags: List[str] = None) -> str:
+    def create_note(self, title: str, content: str = "", tags: Optional[List[str]] = None) -> str:
         """Create a new note and add it to the manager."""
         note = Note(title, content, tags)
         return self.add_note(note)
@@ -160,7 +160,7 @@ class NotesManager(UserDict[str, Note]):
 
     def get_all_tags(self) -> List[str]:
         """Get all unique tags across all notes."""
-        all_tags = set()
+        all_tags: set[str] = set()
         for note in self.data.values():
             all_tags.update(tag.lower() for tag in note.tags)
         return sorted(list(all_tags))
