@@ -5,7 +5,7 @@ on:
     branches: [ main, develop ]
   pull_request:
     branches: [ main, develop ]
-  workflow_dispatch:  # Позволяет запускать проверку качества кода вручную
+  workflow_dispatch:  # Allows running code quality checks manually
 
 jobs:
   lint:

@@ -1,9 +1,8 @@
 {
     "version": "0.2.0",
     "configurations": [
-        
         {
-            "name": "Run CLI Assistant (Poetry)",
+            "name": "Run CLI Assistant",
             "type": "debugpy",
             "request": "launch",
             "module": "cli_assistant.main",
@@ -17,32 +16,33 @@
             }
         },
         {
-            "name": "Run Tests",
+            "name": "Run CLI Assistant with --help",
             "type": "debugpy",
             "request": "launch",
-            "module": "pytest",
+            "program": "${workspaceFolder}/src/cli_assistant/main.py",
             "console": "integratedTerminal",
             "cwd": "${workspaceFolder}",
             "python": "${command:python.interpreterPath}",
-            "args": [
-                "tests/",
-                "-v"
-            ],
-            "justMyCode": false
+            "args": ["--help"],
+            "justMyCode": true,
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}/src"
+            }
         },
         {
-            "name": "Run Current Test File",
+            "name": "Run CLI Assistant (Module)",
             "type": "debugpy",
             "request": "launch",
-            "module": "pytest",
+            "module": "cli_assistant.main",
             "console": "integratedTerminal",
             "cwd": "${workspaceFolder}",
             "python": "${command:python.interpreterPath}",
-            "args": [
-                "${file}",
-                "-v"
-            ],
-            "justMyCode": false
+            "args": [],
+            "justMyCode": true,
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}/src"
+            }
         }
+        
     ]
 }

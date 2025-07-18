@@ -4,7 +4,7 @@ on:
     branches: [ main, develop ]
   pull_request:
     branches: [ main, develop ]
-  workflow_dispatch:  # Позволяет запускать тесты вручную через GitHub UI
+  workflow_dispatch:  # Allows running tests manually through GitHub UI
     inputs:
       debug:
         description: 'Enable debug mode'

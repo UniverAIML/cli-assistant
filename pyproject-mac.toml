@@ -8,25 +8,22 @@ authors = [
 readme = "README.md"
 requires-python = ">=3.9,<3.14"
 dependencies = [
-    "openai (>=1.97.0,<2.0.0)",
-    "colorama (>=0.4.6,<0.5.0)",
-    "questionary (>=2.0.0,<3.0.0)",
-    "rich (>=13.0.0,<14.0.0)",
-    "tabulate (>=0.9.0,<1.0.0)",
+    "openai>=1.97.0,<2.0.0",
+    "colorama>=0.4.6,<0.5.0",
+    "questionary>=2.0.0,<3.0.0",
+    "rich>=13.0.0,<14.0.0",
+    "tabulate>=0.9.0,<1.0.0",
 ]
 
 [project.scripts]
 cli-assistant = "cli_assistant.main:main"
-cli-assistant-chat = "cli_assistant.main:main_chat"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
-packages = [
-    {include = "cli_assistant", from = "src"},
-]
+packages = [{include = "cli_assistant", from = "src"}]
 
 [tool.poetry.dependencies]
 python = ">=3.9,<3.14"
@@ -44,11 +41,13 @@ black = "^24.0.0"
 isort = "^5.13.0"
 flake8 = "^7.0.0"
 mypy = "^1.8.0"
-types-colorama = "^0.4.15.20240311"
 
 [tool.poetry.scripts]
 cli-assistant = "cli_assistant.main:main"
-cli-assistant-chat = "cli_assistant.main:main_chat"
+
+[[tool.poetry.source]]
+name = "PyPI"
+priority = "primary"
 
 [tool.black]
 line-length = 88
@@ -63,21 +62,6 @@ python_version = "3.9"
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = true
-# Add mypy_path to help find our modules
-mypy_path = "src"
-# Enable namespace packages support
-namespace_packages = true
-# Explicit package bases for better module resolution
-explicit_package_bases = true
-
-# Per-module configuration
-[[tool.mypy.overrides]]
-module = "address_book.*"
-ignore_missing_imports = false
-
-[[tool.mypy.overrides]]
-module = "cli_assistant.*"
-ignore_missing_imports = false
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
