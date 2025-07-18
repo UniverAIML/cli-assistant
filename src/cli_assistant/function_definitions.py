@@ -1,15 +1,31 @@
-"""Function definitions and system prompts for the Chat Assistant."""
+"""
+Визначення функцій та системних промптів для чат-асистента.
+
+Цей модуль містить:
+- Системний промпт для AI асистента
+- Повідомлення довідки
+- Визначення всіх доступних функцій для роботи з контактами та нотатками
+- Схеми параметрів для кожної функції
+"""
 
 from typing import Dict, Any
 
-# ALWAYS TRY CALL THE TOOL WITHOUT ANY ADDITIONAL TEXT OR EXPLANATION.
-# USE ONLY AVAILABLE FUNCTIONS:
+# ЗАВЖДИ НАМАГАЙТЕСЬ ВИКЛИКАТИ ІНСТРУМЕНТ БЕЗ БУДЬ-ЯКОГО ДОДАТКОВОГО ТЕКСТУ АБО ПОЯСНЕНЬ.
+# ВИКОРИСТОВУЙТЕ ТІЛЬКИ ДОСТУПНІ ФУНКЦІЇ:
 # add_contact,search_contacts,show_contacts,edit_contact,delete_contact,view_contact_details,get_upcoming_birthdays,get_statistics,add_note,search_notes,show_notes,edit_note,delete_note,view_note_details,search_notes_by_tag,global_search
 
 
 class FunctionDefinitions:
-    """Class containing system prompts and function definitions for the Chat Assistant."""
+    """
+    Клас, що містить системні промпти та визначення функцій для чат-асистента.
 
+    Цей клас централізує всі налаштування для AI асистента:
+    - Системний промпт з інструкціями та правилами
+    - Повідомлення довідки
+    - Визначення всіх доступних функцій
+    """
+
+    # Системний промпт - основні інструкції для AI асистента
     SYSTEM_PROMPT = """You are a helpful CLI assistant that manages contacts and notes.
     !!! ON RESPONSE TOOLS RESULT ALWAYS PROVIDE ERROR MESSAGE IF ANY ERROR OCCURRED.
     
@@ -46,6 +62,7 @@ class FunctionDefinitions:
     
     Use Rich color markup instead of ANSI escape sequences or custom markers."""
 
+    # Повідомлення довідки з інструкціями для користувача
     HELP_MESSAGE = """
 🤖 **CLI Assistant with AI Help**
 
@@ -93,7 +110,13 @@ class FunctionDefinitions:
 - Feel free to chat naturally - I'll understand!
         """
 
+    # Словник всіх доступних функцій з їх описами та параметрами
+    # Цей словник використовується для:
+    # 1. Інформування AI про доступні функції
+    # 2. Валідації параметрів викликів функцій
+    # 3. Автоматичної генерації документації
     AVAILABLE_FUNCTIONS: Dict[str, Dict[str, Any]] = {
+        # Функція для додавання нового контакту
         "add_contact": {
             "name": "add_contact",
             "description": "Add a new contact to the contact list. Name is required, phones can be multiple",
@@ -114,9 +137,10 @@ class FunctionDefinitions:
                         "description": "The birthday in DD.MM.YYYY format",
                     },
                 },
-                "required": ["name"],
+                "required": ["name"],  # Тільки ім'я є обов'язковим
             },
         },
+        # Функція для пошуку контактів
         "search_contacts": {
             "name": "search_contacts",
             "description": "Search for contacts by name or phone number",
@@ -128,7 +152,7 @@ class FunctionDefinitions:
                         "description": "The search query (name or phone)",
                     }
                 },
-                "required": ["query"],
+                "required": ["query"],  # Запит для пошуку обов'язковий
             },
         },
         "add_note": {

@@ -1,7 +1,15 @@
 """
-Beautiful Interactive Menu for Personal Assistant.
+Красиве інтерактивне меню для персонального асистента.
 
-This module provides a rich interactive menu system for managing contacts and notes.
+Цей модуль забезпечує багату систему інтерактивного меню для управління контактами та нотатками.
+
+Основні функції:
+- Красиве меню з використанням Rich та Questionary
+- Управління контактами (CRUD операції)
+- Управління нотатками (CRUD операції)
+- Інтеграція з AI чат-асистентом
+- Пошук та фільтрація
+- Кольорова тема та стилізація
 """
 
 import questionary
@@ -15,6 +23,7 @@ from rich import box
 from typing import List, Dict, Optional, Any
 from datetime import datetime
 
+# Локальні імпорти
 from .operations_manager import OperationsManager
 from .chat_assistant import ChatAssistant
 from database.contact_models import Record
@@ -22,32 +31,54 @@ from database.note_models import Note
 
 
 class InteractiveMenu:
-    """Beautiful interactive menu for the Personal Assistant."""
+    """
+    Красиве інтерактивне меню для персонального асистента.
+
+    Використовує:
+    - Rich для красивого форматування та таблиць
+    - Questionary для інтерактивних промптів
+    - OperationsManager для бізнес-логіки
+    - ChatAssistant для AI функцій
+
+    Функції:
+    - Головне меню з навігацією
+    - Підменю для контактів та нотаток
+    - Форми для введення даних
+    - Відображення результатів у таблицях
+    - Інтеграція з AI асистентом
+    """
 
     def __init__(self) -> None:
-        """Initialize the interactive menu."""
-        # Initialize Rich console
+        """
+        Ініціалізує інтерактивне меню.
+
+        Створює:
+        - Rich console для форматування
+        - OperationsManager для операцій
+        - Кастомний стиль для questionary
+        """
+        # Ініціалізуємо Rich console для красивого виводу
         self.console = Console()
 
-        # Initialize operations manager
+        # Ініціалізуємо менеджер операцій
         self.operations = OperationsManager()
 
-        # Custom questionary style
+        # Кастомний стиль для questionary (темна тема з кольорами)
         self.custom_style = Style(
             [
-                ("question", "bold fg:#61afef"),
-                ("answer", "fg:#98c379 bold"),
-                ("pointer", "fg:#e06c75 bold"),
-                ("highlighted", "fg:#e06c75 bold bg:#2c323c"),
-                ("selected", "fg:#98c379"),
-                ("separator", "fg:#5c6370"),
-                ("instruction", "fg:#abb2bf"),
-                ("text", "fg:#dcdfe4"),
-                ("skipped", "fg:#5c6370 italic"),
+                ("question", "bold fg:#61afef"),  # Синій для запитань
+                ("answer", "fg:#98c379 bold"),  # Зелений для відповідей
+                ("pointer", "fg:#e06c75 bold"),  # Червоний для вказівника
+                ("highlighted", "fg:#e06c75 bold bg:#2c323c"),  # Підсвічений елемент
+                ("selected", "fg:#98c379"),  # Зелений для обраного
+                ("separator", "fg:#5c6370"),  # Сірий для роздільників
+                ("instruction", "fg:#abb2bf"),  # Світло-сірий для інструкцій
+                ("text", "fg:#dcdfe4"),  # Білий для тексту
+                ("skipped", "fg:#5c6370 italic"),  # Курсив для пропущених
             ]
         )
 
-        # Show loaded data count
+        # Показуємо кількість завантажених даних при старті
         data_summary = self.operations.get_data_summary()
         if data_summary["contacts"] > 0 or data_summary["notes"] > 0:
             self.console.print(

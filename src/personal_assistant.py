@@ -1,9 +1,22 @@
-"""Personal Assistant module for contacts and notes management."""
+"""
+Модуль персонального асистента для управління контактами та нотатками.
+
+Цей модуль забезпечує високорівневий інтерфейс для управління контактами
+та нотатками з збереженням даних.
+
+Основні функції:
+- Управління контактами (додавання, пошук, редагування)
+- Управління нотатками (створення, пошук, редагування)
+- Валідація даних
+- Автоматичне збереження змін
+- Пошук та фільтрація
+"""
 
 import re
 from typing import List, Dict, Any, Optional
 from datetime import datetime, date
 
+# Імпорти моделей даних
 from database.contact_models import AddressBook, Record
 from database.note_models import NotesManager, Note
 from database.data_manager import DataManager
@@ -11,81 +24,102 @@ from database.data_manager import DataManager
 
 class PersonalAssistant:
     """
-    Personal Assistant for managing contacts and notes.
+    Персональний асистент для управління контактами та нотатками.
 
-    This class provides a high-level interface for managing contacts
-    and notes with data persistence.
+    Цей клас забезпечує високорівневий інтерфейс для управління контактами
+    та нотатками з збереженням даних.
+
+    Основні можливості:
+    - Централізоване управління даними
+    - Валідація введених даних
+    - Автоматичне збереження змін
+    - Пошук по контактам та нотаткам
+    - Обробка помилок
     """
 
     def __init__(
         self, contacts_file: str = "contacts.json", notes_file: str = "notes.json"
     ):
         """
-        Initialize Personal Assistant.
+        Ініціалізує персональний асистент.
 
         Args:
-            contacts_file: Path to contacts file
-            notes_file: Path to notes file
+            contacts_file: Шлях до файлу контактів
+            notes_file: Шлях до файлу нотаток
         """
+        # Створюємо менеджер даних для роботи з файлами
         self.data_manager = DataManager(contacts_file, notes_file)
+        # Завантажуємо існуючі дані або створюємо нові колекції
         self.address_book, self.notes_manager = self.data_manager.load_data()
 
     def validate_phone(self, phone: str) -> bool:
         """
-        Validate phone number format.
+        Валідує формат номера телефону.
+
+        Правила валідації:
+        - Номер повинен містити рівно 10 цифр
+        - Ігноруються всі не-цифрові символи (дужки, тире, пробіли)
 
         Args:
-            phone: Phone number string
+            phone: Рядок з номером телефону
 
         Returns:
-            bool: True if valid, False otherwise
+            bool: True якщо номер валідний, False інакше
         """
         if not phone:
             return False
 
-        # Remove all non-digits
+        # Видаляємо всі не-цифрові символи
         digits_only = re.sub(r"\D", "", phone)
 
-        # Valid phone number should have exactly 10 digits
+        # Валідний номер телефону повинен мати рівно 10 цифр
         return len(digits_only) == 10
 
     def validate_email(self, email: str) -> bool:
         """
-        Validate email format.
+        Валідує формат електронної пошти.
+
+        Правила валідації:
+        - Базова перевірка формату email з використанням regex
+        - Перевіряє наявність @ та домену
 
         Args:
-            email: Email string
+            email: Рядок з електронною поштою
 
         Returns:
-            bool: True if valid, False otherwise
+            bool: True якщо email валідний, False інакше
         """
         if not email:
             return False
 
-        # Basic email validation regex
+        # Базовий regex для валідації email
         email_pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
         return bool(re.match(email_pattern, email))
 
     def search_contacts(self, query: str) -> List[Record]:
         """
-        Search contacts by name or phone.
+        Пошук контактів за іменем або номером телефону.
+
+        Виконує пошук по:
+        - Імені контакту (регістронезалежний)
+        - Номеру телефону (точне співпадіння)
 
         Args:
-            query: Search query
+            query: Пошуковий запит
 
         Returns:
-            List of matching records
+            List[Record]: Список контактів що відповідають запиту
         """
         results = []
         query_lower = query.lower()
 
         for record in self.address_book.data.values():
-            # Search by name
+            # Пошук за іменем
             if query_lower in record.name.value.lower():
                 results.append(record)
                 continue
 
-            # Search by phone
+            # Пошук за номером телефону
             if record.phones:
                 for phone in record.phones:
                     if query in phone.value:
@@ -96,29 +130,34 @@ class PersonalAssistant:
 
     def search_notes(self, query: str) -> List[str]:
         """
-        Search notes by title, content, or tags.
+        Пошук нотаток за заголовком, змістом або тегами.
+
+        Виконує пошук по:
+        - Заголовку нотатки (регістронезалежний)
+        - Змісту нотатки (регістронезалежний)
+        - Тегам (регістронезалежний)
 
         Args:
-            query: Search query
+            query: Пошуковий запит
 
         Returns:
-            List of matching note IDs
+            List[str]: Список ID нотаток що відповідають запиту
         """
         results = []
         query_lower = query.lower()
 
         for note_id, note in self.notes_manager.data.items():
-            # Search by title
+            # Пошук за заголовком
             if query_lower in note.title.lower():
                 results.append(note_id)
                 continue
 
-            # Search by content
+            # Пошук за змістом
             if query_lower in note.content.lower():
                 results.append(note_id)
                 continue
 
-            # Search by tags
+            # Пошук за тегами
             if any(query_lower in tag.lower() for tag in note.tags):
                 results.append(note_id)
                 continue
@@ -127,31 +166,31 @@ class PersonalAssistant:
 
     def get_upcoming_birthdays(self, days: int = 7) -> List[Dict[str, str]]:
         """
-        Get contacts with upcoming birthdays.
+        Отримує контакти з найближчими днями народження.
 
         Args:
-            days: Number of days to look ahead (currently not used, fixed to 7)
+            days: Кількість днів для перегляду вперед
 
         Returns:
-            List of records with upcoming birthdays
+            List[Dict[str, str]]: Список записів з найближчими днями народження
         """
-        return self.address_book.get_upcoming_birthdays()
+        return self.address_book.get_upcoming_birthdays(days)
 
     def save_data(self) -> bool:
         """
-        Save all data to files.
+        Зберігає всі дані у файли.
 
         Returns:
-            bool: True if successful, False otherwise
+            bool: True якщо збереження успішне, False інакше
         """
         return self.data_manager.save_data(self.address_book, self.notes_manager)
 
     def display_contacts_table(self, contacts: List[Record]) -> None:
         """
-        Display contacts in a table format.
+        Відображає контакти у табличному форматі.
 
         Args:
-            contacts: List of contact records
+            contacts: Список записів контактів для відображення
         """
         if not contacts:
             print("No contacts found.")
@@ -168,10 +207,10 @@ class PersonalAssistant:
 
     def display_notes_table(self, notes: Optional[Dict[str, Note]] = None) -> None:
         """
-        Display notes in a table format.
+        Відображає нотатки у табличному форматі.
 
         Args:
-            notes: Dictionary of notes, if None displays all notes
+            notes: Словник нотаток, якщо None - відображає всі нотатки
         """
         if notes is None:
             notes = self.notes_manager.data

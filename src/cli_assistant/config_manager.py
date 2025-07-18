@@ -1,4 +1,11 @@
-"""Configuration and logging management for the CLI Assistant."""
+"""
+Управління конфігурацією та логуванням для CLI Assistant.
+Цей модуль містить класи для налаштування різних аспектів додатку:
+- Конфігурація AI моделей
+- Налаштування OpenAI API
+- Визначення системних параметрів
+- Управління логуванням
+"""
 
 import logging
 import os
@@ -10,82 +17,96 @@ import torch
 
 @dataclass
 class ModelConfig:
-    """Configuration for the AI model."""
+    """Конфігурація для AI моделі."""
 
-    model_name: str = "Qwen/Qwen2.5-Coder-3B-Instruct"
-    max_new_tokens: int = 300
-    temperature: float = 0.3
-    do_sample: bool = True
-    torch_dtype: str = "auto"
-    trust_remote_code: bool = True
+    model_name: str = "Qwen/Qwen2.5-Coder-3B-Instruct"  # Назва моделі з HuggingFace Hub
+    max_new_tokens: int = 300  # Максимальна кількість нових токенів для генерації
+    temperature: float = (
+        0.3  # Параметр креативності (0.0 - детермінований, 1.0 - творчий)
+    )
+    do_sample: bool = True  # Використовувати sampling замість greedy decoding
+    torch_dtype: str = "auto"  # Тип даних PyTorch для моделі
+    trust_remote_code: bool = True  # Дозволити виконання коду з репозиторію
 
 
 @dataclass
 class OpenAIConfig:
-    """Configuration for OpenAI API."""
+    """Конфігурація для OpenAI API."""
 
-    api_key: Optional[str] = None
-    model_name: str = "gpt-3.5-turbo"
-    max_tokens: int = 1000
-    temperature: float = 0.7
-    top_p: float = 1.0
-    timeout: int = 30
+    api_key: Optional[str] = None  # API ключ для OpenAI
+    model_name: str = "gpt-3.5-turbo"  # Назва моделі OpenAI
+    max_tokens: int = 1000  # Максимальна кількість токенів у відповіді
+    temperature: float = 0.7  # Параметр креативності
+    top_p: float = 1.0  # Параметр nucleus sampling
+    timeout: int = 30  # Таймаут для API запитів (секунди)
 
 
 @dataclass
 class ProviderConfig:
-    """Configuration for AI provider selection."""
+    """Конфігурація для вибору AI провайдера."""
 
-    provider: str = "local"  # "local" or "openai"
-    use_openai: bool = False
+    provider: str = "local"  # Тип провайдера: "local" або "openai"
+    use_openai: bool = False  # Чи використовувати OpenAI замість локальної моделі
 
 
 @dataclass
 class SystemConfig:
-    """System configuration for device detection and optimization."""
+    """Системна конфігурація для виявлення пристроїв та оптимізації."""
 
-    platform: str
-    device_type: str
-    torch_dtype: torch.dtype
-    device_map: Optional[str]
-    use_accelerate: bool
-    device_info: str
+    platform: str  # Операційна система (windows, linux, darwin)
+    device_type: str  # Тип пристрою (cpu, cuda, mps)
+    torch_dtype: torch.dtype  # Тип даних PyTorch для обчислень
+    device_map: Optional[str]  # Мапа пристроїв для розподілу моделі
+    use_accelerate: bool  # Чи використовувати бібліотеку accelerate
+    device_info: str  # Детальна інформація про пристрій
 
 
 class ConfigurationManager:
-    """Manages configuration for the CLI Assistant using Singleton pattern."""
+    """
+    Управляє конфігурацією для CLI Assistant використовуючи паттерн Singleton.
 
-    _instance = None
-    _initialized = False
+    Цей клас забезпечує єдину точку доступу до всіх налаштувань додатку:
+    - Автоматичне виявлення системних можливостей
+    - Налаштування логування
+    - Конфігурація AI моделей та провайдерів
+    - Оптимізація під конкретне залізо
+    """
+
+    # Змінні класу для реалізації Singleton патерну
+    _instance = None  # Єдиний екземпляр класу
+    _initialized = False  # Прапор ініціалізації
 
     def __new__(cls) -> "ConfigurationManager":
+        """Створює новий екземпляр або повертає існуючий (Singleton)."""
         if cls._instance is None:
             cls._instance = super().__new__(cls)
         return cls._instance
 
     def __init__(self) -> None:
+        """Ініціалізує ConfigurationManager тільки один раз."""
         if not self._initialized:
-            self._setup_logging()
-            self._setup_provider_config()
-            self._detect_system_config()
-            self._setup_model_config()
-            self._setup_openai_config()
+            # Послідовність ініціалізації важлива
+            self._setup_logging()  # Спочатку налаштовуємо логування
+            self._setup_provider_config()  # Потім провайдер AI
+            self._detect_system_config()  # Виявляємо системні можливості
+            self._setup_model_config()  # Налаштовуємо модель
+            self._setup_openai_config()  # Налаштовуємо OpenAI
             ConfigurationManager._initialized = True
 
     def _setup_logging(self) -> None:
-        """Configure logging for the application."""
-        # Disable transformers warnings and progress bars
+        """Налаштовує логування для додатку."""
+        # Відключаємо зайві повідомлення від transformers та accelerate
         logging.getLogger("transformers").setLevel(logging.ERROR)
         logging.getLogger("accelerate").setLevel(logging.ERROR)
         os.environ["TRANSFORMERS_VERBOSITY"] = "error"
         os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
-        # Enable detailed HTTP request logs from OpenAI and httpx for debugging
+        # Відключаємо детальні HTTP логи від OpenAI та httpx для чистішого виводу
         logging.getLogger("httpx").setLevel(logging.ERROR)
         logging.getLogger("openai").setLevel(logging.ERROR)
         logging.getLogger("openai._base_client").setLevel(logging.ERROR)
 
-        # Disable tqdm progress bars globally
+        # Відключаємо progress bar від tqdm глобально
         try:
             from tqdm import tqdm  # type: ignore[import-untyped]
 
@@ -93,7 +114,7 @@ class ConfigurationManager:
         except ImportError:
             pass
 
-        # Setup application logging
+        # Налаштовуємо базове логування додатку
         logging.basicConfig(
             level=logging.WARNING,
             format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
@@ -101,45 +122,48 @@ class ConfigurationManager:
         self.logger = logging.getLogger(__name__)
 
     def _setup_provider_config(self) -> None:
-        """Setup AI provider configuration based on environment variables."""
+        """Налаштовує конфігурацію AI провайдера на основі змінних оточення."""
+        # Читаємо змінну оточення USE_OPENAI
         use_openai = os.getenv("USE_OPENAI", "false").lower() == "true"
         provider = "openai" if use_openai else "local"
 
         self.provider_config = ProviderConfig(provider=provider, use_openai=use_openai)
 
     def _detect_system_config(self) -> None:
-        """Detect optimal system configuration for model loading."""
+        """Виявляє оптимальну системну конфігурацію для завантаження моделі."""
         system_platform = platform.system().lower()
         cuda_available = torch.cuda.is_available()
+        # Перевіряємо наявність Apple Silicon MPS
         mps_available = (
             torch.backends.mps.is_available()
             if hasattr(torch.backends, "mps")
             else False
         )
 
-        # Determine optimal device configuration
+        # Визначаємо оптимальну конфігурацію пристрою
         if system_platform == "darwin" and mps_available:
-            # macOS with Apple Silicon
+            # macOS з Apple Silicon (M1/M2/M3)
             device_type = "mps"
-            torch_dtype = torch.float16
-            device_map = None
-            use_accelerate = False
+            torch_dtype = torch.float16  # Половинна точність для економії пам'яті
+            device_map = None  # MPS не підтримує device_map
+            use_accelerate = False  # Не потрібно для MPS
             device_info = f"Platform: macOS, MPS available: {mps_available}"
         elif cuda_available and system_platform in ["windows", "linux"]:
-            # Windows/Linux with NVIDIA GPU
+            # Windows/Linux з NVIDIA GPU
             device_type = "cuda"
-            torch_dtype = torch.float16
-            device_map = "auto"
-            use_accelerate = True
+            torch_dtype = torch.float16  # Половинна точність для GPU
+            device_map = "auto"  # Автоматичне розподілення по GPU
+            use_accelerate = True  # Використовуємо accelerate для оптимізації
             device_info = f"Platform: {system_platform}, CUDA available: {cuda_available}, GPU count: {torch.cuda.device_count()}, Current device: {torch.cuda.get_device_name()}"
         else:
-            # CPU fallback for any platform
+            # Резервний варіант CPU для будь-якої платформи
             device_type = "cpu"
-            torch_dtype = torch.float32
-            device_map = None
-            use_accelerate = False
+            torch_dtype = torch.float32  # Повна точність для CPU
+            device_map = None  # CPU не потребує device_map
+            use_accelerate = False  # Не потрібно для CPU
             device_info = f"Platform: {system_platform}, Using CPU mode"
 
+        # Створюємо конфігурацію системи
         self.system_config = SystemConfig(
             platform=system_platform,
             device_type=device_type,
@@ -150,11 +174,12 @@ class ConfigurationManager:
         )
 
     def _setup_model_config(self) -> None:
-        """Setup model configuration."""
+        """Налаштовує конфігурацію моделі."""
         self.model_config = ModelConfig()
 
     def _setup_openai_config(self) -> None:
-        """Setup OpenAI configuration based on environment variables."""
+        """Налаштовує конфігурацію OpenAI на основі змінних оточення."""
+        # Читаємо налаштування з змінних оточення
         api_key = os.getenv("OPENAI_API_KEY")
         model_name = os.getenv("OPENAI_MODEL", "gpt-3.5-turbo")
 
@@ -167,6 +192,7 @@ class ConfigurationManager:
             timeout=int(os.getenv("OPENAI_TIMEOUT", "30")),
         )
 
+        # Перевіряємо наявність API ключа якщо використовуємо OpenAI
         if self.provider_config.use_openai:
             if not api_key:
                 self.logger.warning(
@@ -176,19 +202,20 @@ class ConfigurationManager:
                 pass
 
     def get_model_kwargs(self) -> Dict[str, Any]:
-        """Get model loading arguments based on system configuration."""
+        """Отримує аргументи для завантаження моделі на основі системної конфігурації."""
         model_kwargs = {
             "torch_dtype": self.model_config.torch_dtype,
             "trust_remote_code": self.model_config.trust_remote_code,
         }
 
+        # Додаємо device_map тільки якщо використовуємо accelerate
         if self.system_config.use_accelerate:
             model_kwargs["device_map"] = self.system_config.device_map
 
         return model_kwargs
 
     def get_generation_kwargs(self) -> Dict[str, Any]:
-        """Get text generation arguments."""
+        """Отримує аргументи для генерації тексту."""
         return {
             "max_new_tokens": self.model_config.max_new_tokens,
             "temperature": self.model_config.temperature,
@@ -196,7 +223,7 @@ class ConfigurationManager:
         }
 
     def get_openai_kwargs(self) -> Dict[str, Any]:
-        """Get OpenAI API arguments."""
+        """Отримує аргументи для OpenAI API."""
         return {
             "model": self.openai_config.model_name,
             "max_tokens": self.openai_config.max_tokens,
@@ -205,22 +232,22 @@ class ConfigurationManager:
         }
 
     def is_openai_enabled(self) -> bool:
-        """Check if OpenAI provider is enabled and configured."""
+        """Перевіряє чи включений та налаштований OpenAI провайдер."""
         return (
             self.provider_config.use_openai and self.openai_config.api_key is not None
         )
 
     def get_provider_type(self) -> str:
-        """Get the current AI provider type."""
+        """Отримує тип поточного AI провайдера."""
         return self.provider_config.provider
 
 
 class LoggerMixin:
-    """Mixin class to provide logging capabilities to other classes."""
+    """Mixin клас для надання можливостей логування іншим класам."""
 
     @property
     def logger(self) -> logging.Logger:
-        """Get logger for the current class."""
+        """Отримує logger для поточного класу."""
         if not hasattr(self, "_logger"):
             self._logger = logging.getLogger(self.__class__.__name__)
         return self._logger

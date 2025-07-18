@@ -1,53 +1,72 @@
 # CLI Assistant
 
-A modern CLI assistant tool with AI-powered chat capabilities for development workflows.
+Сучасний CLI асистент з AI-чат можливостями для робочих процесів розробки.
 
-## 🖥️ Platform Support & Installation
+## 🚀 Особливості
 
-This CLI Assistant supports hardware acceleration on different platforms with automatic detection and optimization.
+- **AI-Powered Chat**: Інтелектуальний чат-асистент з підтримкою виклику функцій
+- **Управління контактами**: Повний CRUD для контактів з валідацією
+- **Управління нотатками**: Створення, пошук та редагування нотаток з тегами
+- **Красиве меню**: Інтерактивне меню з кольоровим форматуванням
+- **Гнучкі AI моделі**: Підтримка локальних моделей та OpenAI API
+- **Автоматична оптимізація**: Автоматичне визначення платформи та прискорення
 
-### Prerequisites
+## 🖥️ Підтримка платформ та встановлення
+
+Цей CLI асистент підтримує апаратне прискорення на різних платформах з автоматичним визначенням та оптимізацією.
+
+### Вимоги
 - Python 3.9-3.13
-- Poetry (for dependency management)
-- For GPU acceleration:
-  - Windows/Linux: NVIDIA GPU with CUDA support
-  - macOS: Apple Silicon (M1/M2/M3/M4) for MPS acceleration
+- Poetry (для управління залежностями)
+- Для GPU прискорення:
+  - Windows/Linux: NVIDIA GPU з підтримкою CUDA
+  - macOS: Apple Silicon (M1/M2/M3/M4) для MPS прискорення
 
-### Install Dependencies
+### Встановлення залежностей
 ```bash
-# Install all dependencies with Poetry
+# Встановлюємо всі залежності через Poetry
 poetry install
 
-# Verify installation
+# Перевіряємо встановлення
 poetry run cli-assistant --help
 ```
 
-### Automatic Platform Detection
-The application automatically detects your platform and configures optimal acceleration:
-- **Windows/Linux + NVIDIA**: Uses CUDA acceleration
-- **macOS Apple Silicon**: Uses Metal Performance Shaders (MPS)
-- **Other platforms**: Falls back to CPU mode
+### Автоматичне визначення платформи
+Додаток автоматично визначає вашу платформу та налаштовує оптимальне прискорення:
+- **Windows/Linux + NVIDIA**: Використовує CUDA прискорення
+- **macOS Apple Silicon**: Використовує Metal Performance Shaders (MPS)
+- **Інші платформи**: Повертається до CPU режиму
 
-## 🎯 Quick Start
+## 🎯 Швидкий старт
 
 ```bash
-# Start the AI chat assistant
+# Запуск AI чат-асистента
 poetry run cli-assistant
 ```
-## 📁 Project Structure
+
+## 📁 Структура проекту
 
 ```
 cli-assistant/
 ├── src/
-│   ├── cli_assistant/              # Main application
-│   │   ├── main.py                 # Entry point
-│   │   ├── chat_assistant.py       # AI chat functionality
-│   │   ├── function_definitions.py # AI function definitions
-│   │   └── assistant_stub.py       # Core business logic
-│   ├── address_book/               # Contact management
-│   │   ├── class_addressBook.py    # Address book implementation
-│   │   ├── class_record_main.py    # Contact record model
-│   │   ├── base_field_classes.py   # Field validation classes
+│   ├── cli_assistant/              # Основний додаток
+│   │   ├── main.py                 # Точка входу
+│   │   ├── chat_assistant.py       # AI чат функціональність
+│   │   ├── function_definitions.py # Визначення AI функцій
+│   │   ├── model_manager.py        # Управління AI моделями
+│   │   ├── config_manager.py       # Управління конфігурацією
+│   │   ├── operations_manager.py   # Бізнес-логіка операцій
+│   │   ├── function_executor.py    # Виконавець функцій
+│   │   └── interactive_menu.py     # Інтерактивне меню
+│   ├── database/                   # Моделі даних
+│   │   ├── contact_models.py       # Моделі контактів
+│   │   ├── note_models.py          # Моделі нотаток
+│   │   └── data_manager.py         # Управління даними
+│   └── personal_assistant.py       # Основний клас асистента
+├── tests/                          # Тести
+├── models/                         # Локальні AI моделі
+├── pyproject.toml                  # Конфігурація Poetry
+└── README.md                       # Ця документація
 │   │   └── class_birthday_managment.py # Birthday functionality
 │   └── notes_models/               # Note management (future)
 ├── tests/                          # Test suite

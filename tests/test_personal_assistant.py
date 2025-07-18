@@ -1,9 +1,16 @@
 #!/usr/bin/env python3
 """
-Test Suite for Personal Assistant Main Application
+Тестовий набір для основного додатку персонального асистента.
 
-Tests for the PersonalAssistant class and its integration with
-contacts and notes management.
+Тести для класу PersonalAssistant та його інтеграції з
+управлінням контактами та нотатками.
+
+Цей файл містить:
+- Тести валідації даних
+- Тести операцій з контактами
+- Тести операцій з нотатками
+- Тести інтеграції компонентів
+- Тести обробки помилок
 """
 
 import pytest
@@ -12,10 +19,10 @@ import os
 import sys
 from unittest.mock import patch, MagicMock
 
-# Add src to path for imports
+# Додаємо src до шляху для імпортів
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
-# Correct imports based on actual project structure
+# Правильні імпорти на основі реальної структури проекту
 from personal_assistant import PersonalAssistant
 from database.contact_models import AddressBook, Record
 from database.note_models import NotesManager, Note
@@ -23,11 +30,28 @@ from database.data_manager import DataManager
 
 
 class TestPersonalAssistant:
-    """Test cases for PersonalAssistant class."""
+    """
+    Тестові випадки для класу PersonalAssistant.
+
+    Покриває:
+    - Ініціалізацію та налаштування
+    - Валідацію даних
+    - CRUD операції з контактами
+    - CRUD операції з нотатками
+    - Обробку помилок
+    - Збереження/завантаження даних
+    """
 
     def setup_method(self):
-        """Setup test environment."""
-        # Create temporary files for testing
+        """
+        Налаштування тестового середовища.
+
+        Створює:
+        - Тимчасові файли для тестування
+        - Екземпляр PersonalAssistant
+        - Тестові дані
+        """
+        # Створюємо тимчасові файли для тестування
         self.temp_dir = tempfile.mkdtemp()
         self.contacts_file = os.path.join(self.temp_dir, "test_contacts.json")
         self.notes_file = os.path.join(self.temp_dir, "test_notes.json")

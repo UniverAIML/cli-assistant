@@ -1,8 +1,15 @@
 """
-Data management module for AddressBook and NotesManager persistence.
+Модуль управління даними для збереження AddressBook та NotesManager.
 
-This module provides functionality for saving and loading AddressBook and NotesManager data
-using JSON serialization.
+Цей модуль забезпечує функціональність для збереження та завантаження даних
+AddressBook та NotesManager з використанням JSON серіалізації.
+
+Основні функції:
+- Серіалізація об'єктів в JSON формат
+- Десеріалізація JSON в об'єкти
+- Обробка помилок файлових операцій
+- Підтримка legacy форматів
+- Резервне копіювання даних
 """
 
 import json
@@ -14,10 +21,18 @@ from typing import Dict, Any, Tuple, Optional
 
 class DataManager:
     """
-    Manages persistence of AddressBook and NotesManager data using JSON serialization.
+    Управляє збереженням даних AddressBook та NotesManager з використанням JSON серіалізації.
 
-    This class handles saving and loading of AddressBook and NotesManager instances to/from disk,
-    providing a clean separation of concerns between data storage and business logic.
+    Цей клас обробляє збереження та завантаження екземплярів AddressBook та NotesManager
+    на/з диску, забезпечуючи чітке розділення обов'язків між зберіганням даних та бізнес-логікою.
+
+    Функції:
+    - Збереження контактів у JSON файл
+    - Завантаження контактів з JSON файлу
+    - Збереження нотаток у JSON файл
+    - Завантаження нотаток з JSON файлу
+    - Обробка помилок та винятків
+    - Підтримка legacy форматів файлів
     """
 
     def __init__(
@@ -26,23 +41,27 @@ class DataManager:
         notes_filename: Optional[str] = None,
     ) -> None:
         """
-        Initialize DataManager with specified filenames.
+        Ініціалізує DataManager з вказаними іменами файлів.
 
         Args:
-            contacts_filename (str): Name of the file to store contacts. Defaults to "addressbook.json"
-            notes_filename (Optional[str]): Name of the file to store notes. If None, generates based on contacts filename
+            contacts_filename (str): Ім'я файлу для збереження контактів. За замовчуванням "addressbook.json"
+            notes_filename (Optional[str]): Ім'я файлу для збереження нотаток.
+                                          Якщо None, генерується на основі contacts_filename
         """
         self.contacts_filename = contacts_filename
 
-        # Handle legacy single-file format
+        # Обробляємо legacy формат з одним файлом
         if notes_filename is None:
             if contacts_filename.endswith(".json"):
+                # Якщо файл контактів addressbook.json, то нотатки addressbook_notes.json
                 self.notes_filename = contacts_filename.replace(".json", "_notes.json")
             else:
+                # Якщо файл без розширення, додаємо _notes.json
                 self.notes_filename = contacts_filename + "_notes.json"
         else:
             self.notes_filename = notes_filename
 
+        # Створюємо Path об'єкти для зручної роботи з файлами
         self.contacts_filepath = Path(self.contacts_filename)
         self.notes_filepath = Path(self.notes_filename)
 

@@ -1,29 +1,42 @@
-"""Main entry point for CLI Assistant."""
+"""
+Головна точка входу для CLI Assistant.
+Цей модуль обробляє аргументи командного рядка та запускає відповідний режим роботи.
+"""
 
 import sys
 from typing import List, Optional
 
-# Initialize colorama for cross-platform colored output
+# Ініціалізуємо colorama для кросплатформенного кольорового виводу
 from colorama import init
 
 init(autoreset=True)
 
+# Локальні імпорти компонентів нашого додатку
 from .chat_assistant import ChatAssistant
 from .interactive_menu import InteractiveMenu
 
 
 def main(args: Optional[List[str]] = None) -> None:
-    """Main entry point for the CLI Assistant application.
+    """
+    Головна точка входу для CLI Assistant додатку.
+
+    Обробляє аргументи командного рядка та запускає відповідний режим:
+    - Без аргументів: інтерактивне меню
+    - menu/-m: інтерактивне меню
+    - chat/-c: чат-асистент
+    - help/-h: довідка
 
     Args:
-        args: Command line arguments. If None, uses sys.argv[1:]
+        args: Аргументи командного рядка. Якщо None, використовує sys.argv[1:]
     """
+    # Якщо аргументи не передані, беремо їх зі стандартного вводу
     if args is None:
         args = sys.argv[1:]
 
-    # If no arguments, start interactive menu by default
+    # Якщо немає аргументів, запускаємо інтерактивне меню за замовчуванням
     if not args:
         try:
+            # Створюємо та запускаємо інтерактивне меню
             menu = InteractiveMenu()
             menu.run()
             return
@@ -31,9 +44,10 @@ def main(args: Optional[List[str]] = None) -> None:
             print(f"Error initializing interactive menu: {e}")
             return
 
-    # Handle menu command
+    # Обробляємо команду меню
     if args[0] in ["menu", "--menu", "-m"]:
         try:
+            # Створюємо та запускаємо інтерактивне меню
             menu = InteractiveMenu()
             menu.run()
             return
@@ -41,9 +55,10 @@ def main(args: Optional[List[str]] = None) -> None:
             print(f"Error initializing interactive menu: {e}")
             return
 
-    # Handle chat command
+    # Обробляємо команду чату
     if args[0] in ["chat", "--chat", "-c"]:
         try:
+            # Створюємо та запускаємо чат-асистент
             assistant = ChatAssistant()
             assistant.chat_loop()
             return
@@ -54,18 +69,18 @@ def main(args: Optional[List[str]] = None) -> None:
             print(f"Unexpected error: {e}")
             return
 
-    # Handle help command
+    # Обробляємо команду довідки
     if args[0] in ["--help", "-h", "help"]:
         print_help()
         return
 
-    # TODO: Implement other command handling
+    # TODO: Реалізувати обробку інших команд
     print(f"Command '{args[0]}' not recognized.")
     print("Use 'cli-assistant --help' for available commands.")
 
 
 def print_help() -> None:
-    """Print help information."""
+    """Виводить інформацію про довідку."""
     help_text = """
 Usage: cli-assistant [command] [options]
 
@@ -87,5 +102,6 @@ contacts and notes with full AI assistant integration.
     print(help_text)
 
 
+# Точка входу для запуску як скрипт
 if __name__ == "__main__":
     main()

@@ -1,7 +1,19 @@
 """
-Notes management module for Personal Assistant.
+Модуль управління нотатками для персонального асистента.
 
-This module provides functionality for managing notes with tags and timestamps.
+Цей модуль забезпечує функціональність для управління нотатками з тегами та часовими мітками.
+
+Основні компоненти:
+- Note: клас для окремої нотатки
+- NotesManager: менеджер для колекції нотаток
+- NoteData: типізована структура для серіалізації
+
+Функції:
+- Створення, редагування, видалення нотаток
+- Пошук по заголовку, змісту, тегам
+- Автоматичні часові мітки
+- Валідація даних
+- Серіалізація в JSON
 """
 
 from collections import UserDict
@@ -12,7 +24,16 @@ import json
 
 
 class NoteData(TypedDict):
-    """Typed representation of a note for static type checking and serialization."""
+    """
+    Типізоване представлення нотатки для статичної перевірки типів та серіалізації.
+
+    Поля:
+    - title: заголовок нотатки
+    - content: зміст нотатки
+    - tags: список тегів
+    - created_at: дата/час створення
+    - updated_at: дата/час останнього оновлення (опціонально)
+    """
 
     title: str
     content: str
@@ -22,27 +43,60 @@ class NoteData(TypedDict):
 
 
 class Note:
-    """Class for storing note information including title, content, tags and timestamps."""
+    """
+    Клас для зберігання інформації про нотатку включно з заголовком, змістом, тегами та часовими мітками.
+
+    Можливості:
+    - Автоматичні часові мітки створення та оновлення
+    - Валідація заголовка
+    - Управління тегами
+    - Серіалізація в словник
+    """
 
     def __init__(
         self, title: str, content: str = "", tags: Optional[List[str]] = None
     ) -> None:
+        """
+        Ініціалізує нову нотатку.
+
+        Args:
+            title: Заголовок нотатки (обов'язковий)
+            content: Зміст нотатки (за замовчуванням пустий)
+            tags: Список тегів (за замовчуванням пустий)
+
+        Raises:
+            ValueError: Якщо заголовок пустий
+        """
         if not title or not title.strip():
             raise ValueError("Note title cannot be empty")
 
         self.title = title.strip()
         self.content = content
         self.tags = tags or []
+        # Зберігаємо часову мітку створення з мікросекундами для точності
         self.created_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
         self.updated_at: Optional[str] = None
 
     def update_content(self, content: str) -> None:
-        """Update note content and set updated timestamp."""
+        """
+        Оновлює зміст нотатки та встановлює часову мітку оновлення.
+
+        Args:
+            content: Новий зміст нотатки
+        """
         self.content = content
         self.updated_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
 
     def update_title(self, title: str) -> None:
-        """Update note title and set updated timestamp."""
+        """
+        Оновлює заголовок нотатки та встановлює часову мітку оновлення.
+
+        Args:
+            title: Новий заголовок нотатки
+
+        Raises:
+            ValueError: Якщо заголовок пустий
+        """
         if not title or not title.strip():
             raise ValueError("Note title cannot be empty")
 
@@ -50,14 +104,30 @@ class Note:
         self.updated_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
 
     def add_tag(self, tag: str) -> None:
-        """Add a tag to the note."""
+        """
+        Додає тег до нотатки.
+
+        Тег додається у нижньому регістрі, дублікати ігноруються.
+        Оновлює часову мітку зміни нотатки.
+
+        Args:
+            tag: Тег для додавання
+        """
         tag = tag.strip().lower()
         if tag and tag not in [t.lower() for t in self.tags]:
             self.tags.append(tag)
             self.updated_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
 
     def remove_tag(self, tag: str) -> None:
-        """Remove a tag from the note."""
+        """
+        Видаляє тег з нотатки.
+
+        Пошук тега виконується без урахування регістру.
+        Оновлює часову мітку зміни нотатки якщо тег було знайдено.
+
+        Args:
+            tag: Тег для видалення
+        """
         tag = tag.strip().lower()
         original_tags = self.tags[:]
         self.tags = [t for t in self.tags if t.lower() != tag]
@@ -66,12 +136,32 @@ class Note:
             self.updated_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
 
     def has_tag(self, tag: str) -> bool:
-        """Check if note has a specific tag."""
+        """
+        Перевіряє чи містить нотатка конкретний тег.
+
+        Пошук виконується без урахування регістру.
+
+        Args:
+            tag: Тег для перевірки
+
+        Returns:
+            bool: True якщо тег знайдено, False інакше
+        """
         tag = tag.strip().lower()
         return tag in [t.lower() for t in self.tags]
 
     def search_in_content(self, query: str) -> bool:
-        """Search for query in note title, content, or tags."""
+        """
+        Пошук запиту в заголовку, змісті або тегах нотатки.
+
+        Пошук виконується без урахування регістру.
+
+        Args:
+            query: Пошуковий запит
+
+        Returns:
+            bool: True якщо запит знайдено, False інакше
+        """
         query = query.lower()
         return (
             query in self.title.lower()
@@ -85,7 +175,12 @@ class Note:
         return f"Note: {self.title}, created: {self.created_at}{updated_str}{tags_str}"
 
     def to_typed_dict(self) -> NoteData:
-        """Return a TypedDict representation of the note."""
+        """
+        Повертає TypedDict представлення нотатки.
+
+        Returns:
+            NoteData: Словник з даними нотатки
+        """
         return {
             "title": self.title,
             "content": self.content,
@@ -96,7 +191,15 @@ class Note:
 
     @classmethod
     def from_typed_dict(cls, data: NoteData) -> "Note":
-        """Create a Note instance from TypedDict data."""
+        """
+        Створює екземпляр Note з TypedDict даних.
+
+        Args:
+            data: Словник з даними нотатки
+
+        Returns:
+            Note: Новий екземпляр нотатки
+        """
         note = cls.__new__(cls)  # Create instance without calling __init__
         note.title = data["title"]
         note.content = data["content"]

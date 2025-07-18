@@ -1,47 +1,103 @@
-"""Function Executor module for AI Assistant using OperationsManager."""
+"""
+Модуль виконавця функцій для AI асистента з використанням OperationsManager.
+
+Цей модуль відповідає за:
+- Виконання функцій на основі запитів від AI
+- Валідацію параметрів функцій
+- Форматування результатів виконання
+- Обробку помилок та винятків
+"""
 
 from typing import Dict, Any, List, Optional
 import logging
 
+# Локальні імпорти
 from .operations_manager import OperationsManager
 from .function_definitions import FunctionDefinitions
 
 
 class FunctionResult:
-    """Value object representing the result of a function execution."""
+    """
+    Value object (об'єкт-значення) для представлення результату виконання функції.
+
+    Інкапсулює:
+    - success: чи успішно виконалася функція
+    - message: повідомлення про результат виконання
+    - data: додаткові дані результату (опціонально)
+    """
 
     def __init__(self, success: bool, message: str, data: Optional[Any] = None):
+        """
+        Ініціалізує результат виконання функції.
+
+        Args:
+            success: Чи успішно виконалася функція
+            message: Повідомлення про результат
+            data: Додаткові дані (опціонально)
+        """
         self.success = success
         self.message = message
         self.data = data
 
     def __str__(self) -> str:
+        """Повертає строкове представлення результату."""
         return self.message
 
 
 class FunctionExecutor:
-    """Executor for function calls using OperationsManager."""
+    """
+    Виконавець функцій з використанням OperationsManager.
+
+    Основні обов'язки:
+    - Отримання викликів функцій від AI
+    - Валідація параметрів
+    - Виконання відповідних операцій
+    - Форматування та повернення результатів
+    """
 
     def __init__(self, operations: Optional[OperationsManager] = None):
-        """Initialize the function executor."""
+        """
+        Ініціалізує виконавець функцій.
+
+        Args:
+            operations: Менеджер операцій (якщо None, створюється новий)
+        """
         self.operations = operations or OperationsManager()
         self.logger = logging.getLogger(self.__class__.__name__)
 
     def execute_function_call(
         self, function_call: Dict[str, Any], user_input: str
     ) -> str:
-        """Execute a function call and return formatted result."""
+        """
+        Виконує виклик функції та повертає форматований результат.
+
+        Процес:
+        1. Витягує назву функції та аргументи
+        2. Валідує параметри
+        3. Виконує функцію
+        4. Зберігає дані при успіху
+        5. Повертає форматований результат
+
+        Args:
+            function_call: Словник з деталями виклику функції
+            user_input: Оригінальний запит користувача
+
+        Returns:
+            Форматований результат виконання функції
+        """
         try:
+            # Витягуємо назву функції та аргументи з виклику
             function_name = function_call.get("function")
             arguments = function_call.get("arguments", {})
 
+            # Перевіряємо, чи задана функція
             if not function_name:
                 return "❌ No function specified"
 
-            # Execute the function
+            # Виконуємо функцію
             result = self._execute_function(function_name, arguments)
 
-            # Save data after successful operations
+            # Зберігаємо дані після успішних операцій
             if result.success:
                 self.operations.save_data()
 

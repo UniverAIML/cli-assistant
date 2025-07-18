@@ -1,3 +1,19 @@
+"""
+Моделі для роботи з контактами в адресній книзі.
+
+Цей модуль містить класи для:
+- Базові поля контактів (ім'я, телефон, день народження)
+- Запис контакту з валідацією
+- Адресну книгу з функціями пошуку та управління
+- Серіалізацію/десеріалізацію в JSON
+
+Архітектура:
+- Field - базовий клас для всіх полів
+- Name, Phone, Birthday - спеціалізовані поля з валідацією
+- Record - окремий контакт з набором полів
+- AddressBook - колекція контактів з пошуком
+"""
+
 from collections import UserDict
 from typing import List, Optional, Dict, TypedDict
 import re
@@ -6,44 +22,112 @@ from datetime import datetime, date, timedelta
 
 
 class Field:
-    """Base class for record fields."""
+    """
+    Базовий клас для полів запису.
+
+    Забезпечує загальний інтерфейс для всіх типів полів контакту.
+    Усі спеціалізовані поля наслідуються від цього класу.
+    """
 
     def __init__(self, value: str) -> None:
+        """
+        Ініціалізує поле зі значенням.
+
+        Args:
+            value: Значення поля
+        """
         self.value = value
 
     def __str__(self) -> str:
+        """Повертає строкове представлення поля."""
         return str(self.value)
 
 
 class Name(Field):
-    """Class for storing contact name. Required field."""
+    """
+    Клас для зберігання імені контакту. Обов'язкове поле.
+
+    Валідація:
+    - Не може бути пустим
+    - Автоматично обрізає пробіли
+    """
 
     def __init__(self, value: str) -> None:
+        """
+        Ініціалізує поле імені з валідацією.
+
+        Args:
+            value: Ім'я контакту
+
+        Raises:
+            ValueError: Якщо ім'я пусте або містить тільки пробіли
+        """
         if not value or not value.strip():
             raise ValueError("Name cannot be empty")
         super().__init__(value.strip())
 
 
 class Phone(Field):
-    """Class for storing phone number with validation (10 digits)."""
+    """
+    Клас для зберігання номера телефону з валідацією (10 цифр).
+
+    Валідація:
+    - Повинен містити рівно 10 цифр
+    - Ігноруються всі не-цифрові символи при валідації
+    """
 
     def __init__(self, value: str) -> None:
+        """
+        Ініціалізує поле телефону з валідацією.
+
+        Args:
+            value: Номер телефону
+
+        Raises:
+            ValueError: Якщо номер не містить рівно 10 цифр
+        """
         if not self._validate_phone(value):
             raise ValueError("Phone number must contain exactly 10 digits")
         super().__init__(value)
 
     @staticmethod
     def _validate_phone(phone: str) -> bool:
-        """Validate phone number format (exactly 10 digits)."""
+        """
+        Валідує формат номера телефону (рівно 10 цифр).
+
+        Args:
+            phone: Номер телефону для перевірки
+
+        Returns:
+            bool: True якщо номер валідний, False інакше
+        """
+        # Видаляємо всі не-цифрові символи
         clean_phone = re.sub(r"[^0-9]", "", phone)
+        # Перевіряємо що залишилось рівно 10 цифр
         return len(clean_phone) == 10 and clean_phone.isdigit()
 
 
 class Birthday(Field):
-    """Class for storing birthday with validation (DD.MM.YYYY format)."""
+    """
+    Клас для зберігання дня народження з валідацією (формат DD.MM.YYYY).
+
+    Валідація:
+    - Повинен бути у форматі DD.MM.YYYY
+    - Повинен бути валідною датою
+    """
 
     def __init__(self, value: str) -> None:
+        """
+        Ініціалізує поле дня народження з валідацією.
+
+        Args:
+            value: Дата народження у форматі DD.MM.YYYY
+
+        Raises:
+            ValueError: Якщо дата невалідна або у неправильному форматі
+        """
         try:
+            # Парсимо дату та зберігаємо як date об'єкт
             self.date = datetime.strptime(value, "%d.%m.%Y").date()
             super().__init__(value)
         except ValueError:
@@ -67,7 +151,18 @@ class Record:
         self.birthday: Optional[Birthday] = None
 
     def add_phone(self, phone: str) -> None:
-        """Add a phone number to the record."""
+        """
+        Додає новий номер телефону до запису.
+
+        Перевіряє чи номер вже не існує перед додаванням.
+        Валідує формат номера телефону.
+
+        Args:
+            phone: Номер телефону для додавання
+
+        Raises:
+            ValueError: Якщо номер вже існує або має невалідний формат
+        """
         phone_obj = Phone(phone)
         if not self._phone_exists(phone_obj.value):
             self.phones.append(phone_obj)
@@ -75,7 +170,17 @@ class Record:
             raise ValueError(f"Phone {phone} already exists for {self.name.value}")
 
     def remove_phone(self, phone: str) -> None:
-        """Remove a phone number from the record."""
+        """
+        Видаляє номер телефону з запису.
+
+        Шукає номер телефону в списку та видаляє його.
+
+        Args:
+            phone: Номер телефону для видалення
+
+        Raises:
+            ValueError: Якщо номер не знайдено
+        """
         phone_obj = self.find_phone(phone)
         if phone_obj:
             self.phones.remove(phone_obj)
@@ -83,7 +188,18 @@ class Record:
             raise ValueError(f"Phone {phone} not found for {self.name.value}")
 
     def edit_phone(self, old_phone: str, new_phone: str) -> None:
-        """Edit an existing phone number."""
+        """
+        Редагує існуючий номер телефону.
+
+        Знаходить старий номер та замінює його новим після валідації.
+
+        Args:
+            old_phone: Поточний номер телефону
+            new_phone: Новий номер телефону
+
+        Raises:
+            ValueError: Якщо старий номер не знайдено або новий номер вже існує
+        """
         phone_obj = self.find_phone(old_phone)
         if not phone_obj:
             raise ValueError(f"Phone {old_phone} not found for {self.name.value}")
@@ -96,7 +212,17 @@ class Record:
         phone_obj.value = new_phone_obj.value
 
     def find_phone(self, phone: str) -> Optional[Phone]:
-        """Find a phone number in the record."""
+        """
+        Знаходить номер телефону в записі.
+
+        Порівнює номери телефонів ігноруючи форматування (дужки, тире, пробіли).
+
+        Args:
+            phone: Номер телефону для пошуку
+
+        Returns:
+            Optional[Phone]: Об'єкт Phone якщо знайдено, None інакше
+        """
         clean_phone = re.sub(r"[^0-9]", "", phone)
         for phone_obj in self.phones:
             if re.sub(r"[^0-9]", "", phone_obj.value) == clean_phone:
@@ -104,11 +230,27 @@ class Record:
         return None
 
     def _phone_exists(self, phone: str) -> bool:
-        """Check if phone number already exists in the record."""
+        """
+        Перевіряє чи номер телефону вже існує в записі.
+
+        Args:
+            phone: Номер телефону для перевірки
+
+        Returns:
+            bool: True якщо номер існує, False інакше
+        """
         return self.find_phone(phone) is not None
 
     def add_birthday(self, birthday: str) -> None:
-        """Add a birthday to the record."""
+        """
+        Додає день народження до запису.
+
+        Args:
+            birthday: Дата народження у форматі DD.MM.YYYY
+
+        Raises:
+            ValueError: Якщо формат дати невалідний
+        """
         self.birthday = Birthday(birthday)
 
     def __str__(self) -> str:
@@ -116,7 +258,12 @@ class Record:
         return f"Contact name: {self.name.value}, phones: {'; '.join(p.value for p in self.phones)}{birthday_str}"
 
     def to_typed_dict(self) -> ContactData:
-        """Return a TypedDict representation of the record (name + list of phones + birthday)."""
+        """
+        Повертає TypedDict представлення запису (ім'я + список телефонів + день народження).
+
+        Returns:
+            ContactData: Словник з даними контакту
+        """
         return {
             "name": self.name.value,
             "phones": [p.value for p in self.phones],
@@ -131,22 +278,48 @@ class AddressBook(UserDict[str, Record]):
         super().__init__()
 
     def add_record(self, record: Record) -> None:
-        """Add a record to the address book."""
+        """
+        Додає запис до адресної книги.
+
+        Args:
+            record: Запис контакту для додавання
+        """
         self.data[record.name.value] = record
 
     def find(self, name: str) -> Optional[Record]:
-        """Find a record by name."""
+        """
+        Знаходить запис за ім'ям.
+
+        Args:
+            name: Ім'я контакту для пошуку
+
+        Returns:
+            Optional[Record]: Запис якщо знайдено, None інакше
+        """
         return self.data.get(name)
 
     def delete(self, name: str) -> None:
-        """Delete a record by name."""
+        """
+        Видаляє запис за ім'ям.
+
+        Args:
+            name: Ім'я контакту для видалення
+
+        Raises:
+            ValueError: Якщо контакт не знайдено
+        """
         if name in self.data:
             del self.data[name]
         else:
             raise ValueError(f"Contact {name} not found")
 
     def get_all_records(self) -> Dict[str, Record]:
-        """Get all records in the address book."""
+        """
+        Отримує всі записи в адресній книзі.
+
+        Returns:
+            Dict[str, Record]: Копія словника з усіма записами
+        """
         return self.data.copy()
 
     def to_typed_dict(self) -> Dict[str, ContactData]:
@@ -208,8 +381,16 @@ class AddressBook(UserDict[str, Record]):
             print(f"Error parsing address book file: {e}. Creating new AddressBook.")
             return cls()
 
-    def get_upcoming_birthdays(self, days) -> List[Dict[str, str]]:
-        """Get list of contacts with birthdays in the next 7 days."""
+    def get_upcoming_birthdays(self, days: int = 7) -> List[Dict[str, str]]:
+        """
+        Отримує список контактів з днями народження в наступні кілька днів.
+
+        Args:
+            days: Кількість днів для перегляду вперед (за замовчуванням 7)
+
+        Returns:
+            List[Dict[str, str]]: Список словників з інформацією про дні народження
+        """
         upcoming_birthdays: List[Dict[str, str]] = []
         today = date.today()
 
