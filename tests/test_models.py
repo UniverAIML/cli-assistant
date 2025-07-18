@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """
-Test Suite for Address Book Management System
+Тестовий набір для системи управління адресною книгою
 
-Comprehensive tests covering all classes and functionality including:
-- Field validation
-- Name validation
-- Phone number validation
-- Record management
-- Address book operations
-- Error handling
+Комплексні тести, що покривають всі класи та функціональність включаючи:
+- Валідацію полів
+- Валідацію імен
+- Валідацію номерів телефонів
+- Управління записами
+- Операції з адресною книгою
+- Обробку помилок
 """
 
 import sys

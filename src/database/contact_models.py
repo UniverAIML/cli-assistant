@@ -135,7 +135,14 @@ class Birthday(Field):
 
 
 class ContactData(TypedDict):
-    """Typed representation of a contact for static type checking and serialization."""
+    """
+    Типізоване представлення контакту для статичної перевірки типів та серіалізації.
+
+    Поля:
+    - name: ім'я контакту
+    - phones: список номерів телефонів
+    - birthday: день народження (опціонально)
+    """
 
     name: str
     phones: List[str]
@@ -143,7 +150,15 @@ class ContactData(TypedDict):
 
 
 class Record:
-    """Class for storing contact information including name, phone list and birthday."""
+    """
+    Клас для зберігання інформації про контакт включаючи ім'я, список телефонів та день народження.
+
+    Можливості:
+    - Валідація всіх полів при створенні
+    - Управління множинними номерами телефонів
+    - Зберігання дня народження з валідацією
+    - Пошук та редагування інформації
+    """
 
     def __init__(self, name: str) -> None:
         self.name = Name(name)
@@ -204,7 +219,7 @@ class Record:
         if not phone_obj:
             raise ValueError(f"Phone {old_phone} not found for {self.name.value}")
 
-        # Validate new phone before changing
+        # Валідуємо новий номер перед зміною
         new_phone_obj = Phone(new_phone)
         if self._phone_exists(new_phone_obj.value):
             raise ValueError(f"Phone {new_phone} already exists for {self.name.value}")
@@ -272,7 +287,15 @@ class Record:
 
 
 class AddressBook(UserDict[str, Record]):
-    """Class for storing and managing contact records."""
+    """
+    Клас для зберігання та управління записами контактів.
+
+    Цей клас наслідує UserDict і забезпечує:
+    - Додавання, пошук та видалення контактів
+    - Пошук контактів за іменем, телефоном та днем народження
+    - Серіалізацію та завантаження з файлів
+    - Управління днями народження та нагадуваннями
+    """
 
     def __init__(self) -> None:
         super().__init__()
@@ -323,29 +346,52 @@ class AddressBook(UserDict[str, Record]):
         return self.data.copy()
 
     def to_typed_dict(self) -> Dict[str, ContactData]:
-        """Return the entire address book as mapping name -> ContactData."""
+        """
+        Повертає всю адресну книгу як словник name -> ContactData.
+
+        Returns:
+            Dict[str, ContactData]: Словник з даними всіх контактів
+        """
         return {name: record.to_typed_dict() for name, record in self.data.items()}
 
     def to_json(self) -> str:
-        """Serialize the address book to JSON string."""
+        """
+        Серіалізує адресну книгу у JSON рядок.
+
+        Використовує UTF-8 кодування для підтримки українських символів.
+
+        Returns:
+            str: JSON представлення адресної книги
+        """
         return json.dumps(self.to_typed_dict(), indent=2, ensure_ascii=False)
 
     @classmethod
     def from_json(cls, json_str: str) -> "AddressBook":
-        """Deserialize address book from JSON string."""
+        """
+        Десеріалізує адресну книгу з JSON рядка.
+
+        Args:
+            json_str: JSON рядок з даними адресної книги
+
+        Returns:
+            AddressBook: Новий екземпляр адресної книги з відновленими даними
+
+        Raises:
+            ValueError: Якщо JSON дані некоректні або пошкоджені
+        """
         try:
             data = json.loads(json_str)
             address_book = cls()
 
             for name, contact_data in data.items():
-                # Create record from contact data
+                # Створюємо запис з даних контакту
                 record = Record(contact_data["name"])
 
-                # Add phones
+                # Додаємо телефони
                 for phone in contact_data.get("phones", []):
                     record.add_phone(phone)
 
-                # Add birthday if present
+                # Додаємо день народження якщо вказано
                 if contact_data.get("birthday"):
                     record.add_birthday(contact_data["birthday"])
 
@@ -356,7 +402,15 @@ class AddressBook(UserDict[str, Record]):
             raise ValueError(f"Invalid JSON data for AddressBook: {e}")
 
     def save_to_file(self, filepath: str) -> bool:
-        """Save address book to JSON file."""
+        """
+        Зберігає адресну книгу у JSON файл.
+
+        Args:
+            filepath: Шлях до файлу для збереження
+
+        Returns:
+            bool: True якщо збереження успішне, False у разі помилки
+        """
         try:
             with open(filepath, "w", encoding="utf-8") as f:
                 f.write(self.to_json())
@@ -367,7 +421,17 @@ class AddressBook(UserDict[str, Record]):
 
     @classmethod
     def load_from_file(cls, filepath: str) -> "AddressBook":
-        """Load address book from JSON file."""
+        """
+        Завантажує адресну книгу з JSON файла.
+
+        Якщо файл не існує або пошкоджений, створює нову порожню адресну книгу.
+
+        Args:
+            filepath: Шлях до файлу для завантаження
+
+        Returns:
+            AddressBook: Адресна книга з завантаженими даними або нова порожня книга
+        """
         try:
             with open(filepath, "r", encoding="utf-8") as f:
                 json_str = f.read()
