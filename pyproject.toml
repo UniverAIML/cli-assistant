@@ -80,6 +80,21 @@ python_version = "3.9"
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = true
+# Add mypy_path to help find our modules
+mypy_path = "src"
+# Enable namespace packages support
+namespace_packages = true
+# Explicit package bases for better module resolution
+explicit_package_bases = true
+
+# Per-module configuration
+[[tool.mypy.overrides]]
+module = "address_book.*"
+ignore_missing_imports = false
+
+[[tool.mypy.overrides]]
+module = "cli_assistant.*"
+ignore_missing_imports = false
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

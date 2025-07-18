@@ -16,13 +16,13 @@ class ChatAssistant(LoggerMixin):
 
     def __init__(self) -> None:
         """Initialize the chat assistant with model and assistant stub."""
-        
+
         # Initialize the model manager (Singleton)
         self.model_manager = ModelManager()
-        
+
         # Initialize the assistant stub for handling commands
         self.assistant = AssistantStub()
-        
+
         # Initialize the function executor
         self.function_executor = FunctionExecutor(self.assistant)
 
@@ -39,8 +39,8 @@ class ChatAssistant(LoggerMixin):
 
     def parse_function_call(self, response: str) -> Optional[Dict[str, Any]]:
         """Parse function call from model response."""
-        #print(f"🔍 Debug - Parsing response: {response[:200]}...")  # Debug line
-        
+        # print(f"🔍 Debug - Parsing response: {response[:200]}...")  # Debug line
+
         # Look for JSON function call format in code blocks
         json_pattern = r"```json\s*(\{.*?\})\s*```"
         json_match = re.search(json_pattern, response, re.DOTALL)
@@ -63,7 +63,9 @@ class ChatAssistant(LoggerMixin):
                 # print(f"🔍 Debug - Found JSON without code block: {function_call}")  # Debug line
                 return function_call  # type: ignore[no-any-return]
             except json.JSONDecodeError as e:
-                print(f"🔍 Debug - JSON decode error without code block: {e}")  # Debug line
+                print(
+                    f"🔍 Debug - JSON decode error without code block: {e}"
+                )  # Debug line
 
         # Look for any JSON-like structure
         json_pattern = r'\{.*?"function".*?\}'
@@ -74,13 +76,19 @@ class ChatAssistant(LoggerMixin):
                 # Try to clean up the JSON
                 json_str = json_match.group(0)
                 function_call = json.loads(json_str)
-                print(f"\033[90m🔍 Debug - Found JSON-like structure: {function_call}\033[0m")  # Debug line
+                print(
+                    f"\033[90m🔍 Debug - Found JSON-like structure: {function_call}\033[0m"
+                )  # Debug line
                 return function_call  # type: ignore[no-any-return]
             except json.JSONDecodeError as e:
-                print(f"🔍 Debug - JSON decode error in JSON-like structure: {e}")  # Debug line
+                print(
+                    f"🔍 Debug - JSON decode error in JSON-like structure: {e}"
+                )  # Debug line
 
         # Print debug message in gray color using ANSI escape codes
-        print(f"\033[90m🔍 Debug - No function call found in response\033[0m")  # Gray debug line
+        print(
+            f"\033[90m🔍 Debug - No function call found in response\033[0m"
+        )  # Gray debug line
         return None
 
     def execute_function_call(
@@ -93,10 +101,14 @@ class ChatAssistant(LoggerMixin):
         """Generate response using function calling capabilities."""
         try:
             # Prepare messages using model manager
-            messages = self.model_manager.prepare_messages(user_input, self.conversation_history)
+            messages = self.model_manager.prepare_messages(
+                user_input, self.conversation_history
+            )
 
             # Generate response using model manager
-            assistant_response = self.model_manager.generate_function_calling_response(messages)
+            assistant_response = self.model_manager.generate_function_calling_response(
+                messages
+            )
 
             # Try to parse function call
             function_call = self.parse_function_call(assistant_response)

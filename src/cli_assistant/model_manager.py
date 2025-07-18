@@ -11,14 +11,14 @@ from .function_definitions import FunctionDefinitions
 
 class ResponseStrategy(ABC):
     """Abstract strategy for generating responses."""
-    
+
     @abstractmethod
     def generate_response(
         self, 
         model: Any, 
         tokenizer: Any, 
         messages: List[Dict[str, str]], 
-        **kwargs
+        **kwargs: Any
     ) -> str:
         """Generate a response using the specific strategy."""
         pass
@@ -26,13 +26,13 @@ class ResponseStrategy(ABC):
 
 class FunctionCallingStrategy(ResponseStrategy):
     """Strategy for generating function calling responses."""
-    
+
     def generate_response(
         self, 
         model: Any, 
         tokenizer: Any, 
         messages: List[Dict[str, str]], 
-        **kwargs
+        **kwargs: Any
     ) -> str:
         """Generate response with function calling capabilities."""
         # Generate response using direct model call (following official Qwen example)
@@ -41,34 +41,31 @@ class FunctionCallingStrategy(ResponseStrategy):
         )
         model_inputs = tokenizer([text], return_tensors="pt").to(model.device)
 
-        generation_kwargs = kwargs.get('generation_kwargs', {})
-        generation_kwargs.setdefault('pad_token_id', tokenizer.eos_token_id)
+        generation_kwargs = kwargs.get("generation_kwargs", {})
+        generation_kwargs.setdefault("pad_token_id", tokenizer.eos_token_id)
 
-        generated_ids = model.generate(
-            **model_inputs,
-            **generation_kwargs
-        )
-        
+        generated_ids = model.generate(**model_inputs, **generation_kwargs)
+
         # Extract only the new tokens (remove input)
         generated_ids = [
-            output_ids[len(input_ids):] 
+            output_ids[len(input_ids) :]
             for input_ids, output_ids in zip(model_inputs.input_ids, generated_ids)
         ]
 
         # Decode the response
-        response = tokenizer.batch_decode(generated_ids, skip_special_tokens=True)[0]
+        response: str = tokenizer.batch_decode(generated_ids, skip_special_tokens=True)[0]
         return response
 
 
 class ContextualResponseStrategy(ResponseStrategy):
     """Strategy for generating contextual follow-up responses."""
-    
+
     def generate_response(
         self, 
         model: Any, 
         tokenizer: Any, 
         messages: List[Dict[str, str]], 
-        **kwargs
+        **kwargs: Any
     ) -> str:
         """Generate a contextual response based on function execution result."""
         # Format prompt using chat template
@@ -86,19 +83,16 @@ class ContextualResponseStrategy(ResponseStrategy):
         }
 
         # Generate contextual response using direct model call
-        generated_ids = model.generate(
-            **model_inputs,
-            **contextual_kwargs
-        )
-        
+        generated_ids = model.generate(**model_inputs, **contextual_kwargs)
+
         # Extract only the new tokens
         generated_ids = [
-            output_ids[len(input_ids):] 
+            output_ids[len(input_ids) :]
             for input_ids, output_ids in zip(model_inputs.input_ids, generated_ids)
         ]
 
         # Extract response
-        response = tokenizer.batch_decode(generated_ids, skip_special_tokens=True)[0]
+        response: str = tokenizer.batch_decode(generated_ids, skip_special_tokens=True)[0]
         return response.strip()
 
 
@@ -107,33 +101,33 @@ class ModelManager(LoggerMixin):
     Manages AI model loading and inference using Strategy pattern.
     Implements Singleton pattern for model instance management.
     """
-    
+
     _instance = None
     _model_loaded = False
-    
-    def __new__(cls):
+
+    def __new__(cls) -> 'ModelManager':
         if cls._instance is None:
             cls._instance = super().__new__(cls)
         return cls._instance
-    
-    def __init__(self):
+
+    def __init__(self) -> None:
         if not self._model_loaded:
             self.config_manager = ConfigurationManager()
             self._load_model()
             self._setup_strategies()
             ModelManager._model_loaded = True
-    
+
     def _load_model(self) -> None:
         """Load the AI model and tokenizer."""
         try:
             model_config = self.config_manager.model_config
             system_config = self.config_manager.system_config
-            
+
             self.logger.info(f"Loading model: {model_config.model_name}")
-            
+
             # Get model loading arguments
             model_kwargs = self.config_manager.get_model_kwargs()
-            
+
             self.model = AutoModelForCausalLM.from_pretrained(
                 model_config.model_name, **model_kwargs
             )
@@ -142,40 +136,34 @@ class ModelManager(LoggerMixin):
             # Move model to appropriate device if not using accelerate
             if not system_config.use_accelerate and system_config.device_type != "cpu":
                 self.model = self.model.to(system_config.device_type)
-            
+
             self.logger.info("Model loaded successfully")
 
         except Exception as e:
             self.logger.error(f"Failed to load model: {str(e)}")
             raise RuntimeError(f"Failed to load model: {str(e)}")
-    
+
     def _setup_strategies(self) -> None:
         """Setup response generation strategies."""
         self.function_calling_strategy = FunctionCallingStrategy()
         self.contextual_strategy = ContextualResponseStrategy()
-    
-    def generate_function_calling_response(
-        self, 
-        messages: List[Dict[str, str]]
-    ) -> str:
+
+    def generate_function_calling_response(self, messages: List[Dict[str, str]]) -> str:
         """Generate response using function calling strategy."""
         try:
             generation_kwargs = self.config_manager.get_generation_kwargs()
             return self.function_calling_strategy.generate_response(
-                self.model, 
-                self.tokenizer, 
+                self.model,
+                self.tokenizer,
                 messages,
-                generation_kwargs=generation_kwargs
+                generation_kwargs=generation_kwargs,
             )
         except Exception as e:
             self.logger.error(f"Error in function calling response: {str(e)}")
             return f"Sorry, I encountered an error: {str(e)}"
-    
+
     def generate_contextual_response(
-        self, 
-        user_input: str, 
-        function_call: Dict[str, Any], 
-        function_result: str
+        self, user_input: str, function_call: Dict[str, Any], function_result: str
     ) -> str:
         """Generate contextual response based on function execution result."""
         try:
@@ -197,9 +185,7 @@ class ModelManager(LoggerMixin):
             ]
 
             contextual_response = self.contextual_strategy.generate_response(
-                self.model, 
-                self.tokenizer, 
-                context_messages
+                self.model, self.tokenizer, context_messages
             )
 
             # Clean up the response and ensure it's natural
@@ -219,11 +205,9 @@ class ModelManager(LoggerMixin):
             # Fallback to function result if anything goes wrong
             self.logger.error(f"Error in contextual response: {str(e)}")
             return function_result
-    
+
     def prepare_messages(
-        self, 
-        user_input: str, 
-        conversation_history: List[Dict[str, str]]
+        self, user_input: str, conversation_history: List[Dict[str, str]]
     ) -> List[Dict[str, str]]:
         """Prepare messages for model input."""
         messages = [
@@ -245,5 +229,5 @@ class ModelManager(LoggerMixin):
 
         # Add current user input
         messages.append({"role": "user", "content": user_input})
-        
+
         return messages
