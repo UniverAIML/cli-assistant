@@ -126,16 +126,52 @@ class OpenAIStrategy(ResponseStrategy):
     ) -> str:
         """Generate response using OpenAI API."""
         try:
-            # Convert messages to OpenAI format (they're already compatible)
+            # Import function definitions
+            from .function_definitions import FunctionDefinitions
+            
+            # Convert function definitions to OpenAI tools format
+            tools = []
+            for func_name, func_def in FunctionDefinitions.AVAILABLE_FUNCTIONS.items():
+                tool = {
+                    "type": "function",
+                    "function": {
+                        "name": func_def["name"],
+                        "description": func_def["description"],
+                        "parameters": func_def["parameters"]
+                    }
+                }
+                tools.append(tool)
+            
+            # Create completion with function calling support
             response = self.client.chat.completions.create(
                 model=self.model_name,
                 messages=messages,
+                tools=tools,
+                tool_choice="auto",  # Let OpenAI decide when to use functions
                 max_tokens=kwargs.get("max_tokens", 1000),
                 temperature=kwargs.get("temperature", 0.7),
                 top_p=kwargs.get("top_p", 1.0),
             )
             
-            return response.choices[0].message.content.strip()
+            message = response.choices[0].message
+            
+            # Check if OpenAI wants to call a function
+            if message.tool_calls:
+                # Return the function call information in a format our system expects
+                tool_call = message.tool_calls[0]
+                function_name = tool_call.function.name
+                try:
+                    import json
+                    function_args = json.loads(tool_call.function.arguments)
+                except json.JSONDecodeError:
+                    function_args = {}
+                
+                # Format as expected by our function executor
+                result = f"FUNCTION_CALL:{function_name}:{json.dumps(function_args)}"
+                return result
+            else:
+                # Regular text response
+                return message.content.strip() if message.content else ""
             
         except Exception as e:
             raise RuntimeError(f"OpenAI API error: {str(e)}")

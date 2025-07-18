@@ -41,6 +41,24 @@ class ChatAssistant(LoggerMixin):
         """Parse function call from model response."""
         # print(f"🔍 Debug - Parsing response: {response[:200]}...")  # Debug line
 
+        # Check for OpenAI function call format first
+        if response.startswith("FUNCTION_CALL:"):
+            try:
+                parts = response.split(":", 2)  # Split into max 3 parts
+                if len(parts) >= 3:
+                    function_name = parts[1]
+                    arguments_json = parts[2]
+                    arguments = json.loads(arguments_json)
+                    
+                    function_call = {
+                        "function": function_name,
+                        "arguments": arguments
+                    }
+                    print(f"🔍 Debug - Found OpenAI function call: {function_call}")
+                    return function_call
+            except (json.JSONDecodeError, IndexError) as e:
+                print(f"🔍 Debug - Error parsing OpenAI function call: {e}")
+
         # Look for JSON function call format in code blocks
         json_pattern = r"```json\s*(\{.*?\})\s*```"
         json_match = re.search(json_pattern, response, re.DOTALL)
