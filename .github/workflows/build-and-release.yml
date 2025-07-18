@@ -7,29 +7,35 @@ on:
       - master
   workflow_dispatch:  # Allow manual trigger
 
+permissions:
+  contents: write  # Permissions for creating tags and releases
+
 jobs:
   create-tag:
     name: Create Release Tag
     runs-on: ubuntu-latest
+    permissions:
+      contents: write  # Permission to create tags
     outputs:
       tag: ${{ steps.create_tag.outputs.tag }}
     steps:
     - uses: actions/checkout@v4
       with:
-        fetch-depth: 0  # Получаем всю историю для подсчета коммитов
+        fetch-depth: 0  # Get full history for commit counting
+        token: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Generate tag
       id: create_tag
       run: |
-        # Генерируем тег в формате YYYY.WW.DD+BuildNumber
+        # Generate tag in format YYYY.WW.DD+BuildNumber
         YEAR=$(date +%Y)
         WEEK=$(date +%V)
         DAY=$(date +%d)
         
-        # Подсчитываем количество коммитов сегодня как build number
+        # Count commits today as build number
         BUILD_NUMBER=$(git log --since="$(date +%Y-%m-%d) 00:00:00" --oneline | wc -l)
         
-        # Если коммитов сегодня нет, используем общий счетчик
+        # If no commits today, use run number
         if [ "$BUILD_NUMBER" -eq 0 ]; then
           BUILD_NUMBER=${{ github.run_number }}
         fi
@@ -39,6 +45,8 @@ jobs:
         echo "Generated tag: $TAG"
 
     - name: Create and push tag
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         TAG=${{ steps.create_tag.outputs.tag }}
         git config user.name "github-actions[bot]"
@@ -167,6 +175,8 @@ jobs:
     name: Create Release
     needs: [create-tag, build, build-python-packages]
     runs-on: ubuntu-latest
+    permissions:
+      contents: write  # Permission to create releases
     
     steps:
     - uses: actions/checkout@v4
