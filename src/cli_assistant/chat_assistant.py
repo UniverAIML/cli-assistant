@@ -3,6 +3,7 @@
 import json
 import re
 from typing import Dict, List, Any, Optional
+from colorama import Fore, Style
 
 from .assistant_stub import AssistantStub
 from .function_definitions import FunctionDefinitions
@@ -33,6 +34,23 @@ class ChatAssistant(LoggerMixin):
         self.system_prompt = FunctionDefinitions.SYSTEM_PROMPT
         self.available_functions = FunctionDefinitions.AVAILABLE_FUNCTIONS
 
+    def colorize_text(self, text: str) -> str:
+        """Convert color markers to colorama colors."""
+        color_map = {
+            '[GREEN]': Fore.GREEN,
+            '[RED]': Fore.RED,
+            '[BLUE]': Fore.BLUE,
+            '[YELLOW]': Fore.YELLOW,
+            '[MAGENTA]': Fore.MAGENTA,
+            '[CYAN]': Fore.CYAN,
+            '[RESET]': Style.RESET_ALL
+        }
+        
+        for marker, color in color_map.items():
+            text = text.replace(marker, color)
+        
+        return text
+
     def welcome_message(self) -> str:
         """Return a welcome message for the chat assistant."""
         return "🤖 Welcome to CLI Assistant with AI!"
@@ -49,10 +67,11 @@ class ChatAssistant(LoggerMixin):
                     function_name = parts[1]
                     arguments_json = parts[2]
                     arguments = json.loads(arguments_json)
-                    
+
                     function_call = {
-                        "function": function_name,
-                        "arguments": arguments
+                        "function": function_name, 
+                        "arguments": arguments,
+                        "tool_call_id": f"call_{function_name}_{hash(arguments_json) % 10000}"
                     }
                     print(f"🔍 Debug - Found OpenAI function call: {function_call}")
                     return function_call
@@ -66,6 +85,9 @@ class ChatAssistant(LoggerMixin):
         if json_match:
             try:
                 function_call = json.loads(json_match.group(1))
+                # Add tool_call_id if not present
+                if "tool_call_id" not in function_call:
+                    function_call["tool_call_id"] = f"call_{function_call.get('function', 'unknown')}_{hash(json_match.group(1)) % 10000}"
                 # print(f"🔍 Debug - Found JSON in code block: {function_call}")  # Debug line
                 return function_call  # type: ignore[no-any-return]
             except json.JSONDecodeError as e:
@@ -78,6 +100,9 @@ class ChatAssistant(LoggerMixin):
         if json_match:
             try:
                 function_call = json.loads(json_match.group(0))
+                # Add tool_call_id if not present
+                if "tool_call_id" not in function_call:
+                    function_call["tool_call_id"] = f"call_{function_call.get('function', 'unknown')}_{hash(json_match.group(0)) % 10000}"
                 # print(f"🔍 Debug - Found JSON without code block: {function_call}")  # Debug line
                 return function_call  # type: ignore[no-any-return]
             except json.JSONDecodeError as e:
@@ -94,6 +119,9 @@ class ChatAssistant(LoggerMixin):
                 # Try to clean up the JSON
                 json_str = json_match.group(0)
                 function_call = json.loads(json_str)
+                # Add tool_call_id if not present
+                if "tool_call_id" not in function_call:
+                    function_call["tool_call_id"] = f"call_{function_call.get('function', 'unknown')}_{hash(json_str) % 10000}"
                 print(
                     f"\033[90m🔍 Debug - Found JSON-like structure: {function_call}\033[0m"
                 )  # Debug line
@@ -135,10 +163,38 @@ class ChatAssistant(LoggerMixin):
                 # Execute function and get result
                 function_result = self.execute_function_call(function_call, user_input)
 
-                # Generate a more natural response based on the function result
-                return self.generate_contextual_response(
-                    user_input, function_call, function_result
-                )
+                # Add the assistant's function call message to messages
+                assistant_tool_message = {
+                    "role": "assistant",
+                    "content": assistant_response,
+                    "tool_calls": [{
+                        "id": function_call.get('tool_call_id', f"call_{function_call['function']}"),
+                        "type": "function",
+                        "function": {
+                            "name": function_call['function'],
+                            "arguments": json.dumps(function_call['arguments'])
+                        }
+                    }]
+                }
+                
+                # Create a copy of messages to avoid modifying original
+                messages_copy = messages.copy()
+                messages_copy.append(assistant_tool_message)  # type: ignore
+                
+                # Add the function result as a tool message
+                tool_message = {
+                    "role": "tool", 
+                    "tool_call_id": function_call.get('tool_call_id', f"call_{function_call['function']}"),
+                    "name": function_call['function'],
+                    "content": function_result
+                }
+                messages_copy.append(tool_message)  # type: ignore
+
+                # Generate final response based on function result
+                final_response = self.model_manager.generate_function_calling_response(messages_copy)
+                
+                return final_response
+                
             else:
                 # If no function call, check for keyword-based commands (fallback)
                 if "help" in user_input.lower() and (
@@ -154,19 +210,6 @@ class ChatAssistant(LoggerMixin):
             self.logger.error(f"Error in function calling response: {str(e)}")
             return f"Sorry, I encountered an error: {str(e)}"
 
-    def generate_contextual_response(
-        self, user_input: str, function_call: Dict[str, Any], function_result: str
-    ) -> str:
-        """Generate a contextual response based on the function execution result."""
-        try:
-            return self.model_manager.generate_contextual_response(
-                user_input, function_call, function_result
-            )
-        except Exception as e:
-            # Fallback to function result if anything goes wrong
-            self.logger.error(f"Error in contextual response: {str(e)}")
-            return function_result
-
     def generate_response(self, user_input: str) -> str:
         """Generate a response based on user input using AI."""
         if not user_input.strip():
@@ -178,7 +221,10 @@ class ChatAssistant(LoggerMixin):
             return "Goodbye! Have a great day!"
 
         # Let the function calling model handle everything
-        return self.generate_function_calling_response(user_input)
+        response = self.generate_function_calling_response(user_input)
+        
+        # Apply color processing to the response
+        return self.colorize_text(response)
 
     def add_to_history(self, user_input: str, assistant_response: str) -> None:
         """Add conversation to history."""

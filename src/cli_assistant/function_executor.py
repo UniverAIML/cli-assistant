@@ -67,18 +67,12 @@ class AddContactCommand(BaseCommand):
         name = self.arguments.get("name", "")
         phones = self.arguments.get("phones", [])
         birthday = self.arguments.get("birthday", "")
-
-        if not name:
-            return FunctionResult(False, "❌ Contact name is required")
-
-        self.assistant.add_contact(name, phones, birthday)
-
-        message = f"✅ Successfully added contact: {name}"
-        if phones:
-            message += f" with {len(phones)} phone(s)"
-
-        return FunctionResult(True, message, {"name": name, "phones": phones})
-
+        try:
+            result = FunctionResult(True, self.assistant.add_contact(name, phones, birthday))
+        except Exception as e:
+            result = FunctionResult(False, str(e))
+        
+        return result
 
 class SearchContactsCommand(BaseCommand):
     """Command for searching contacts."""
@@ -445,7 +439,7 @@ class FunctionExecutor:
         if "query" not in arguments and user_input:
             arguments["query"] = user_input
 
-        self.logger.info(f"🔧 Executing: {function_name}({arguments})")
+        # self.logger.info(f"🔧 Executing: {function_name}({arguments})")
 
         # Check if function is registered
         if function_name not in self._command_registry:

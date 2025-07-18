@@ -3,6 +3,10 @@
 import sys
 from typing import List, Optional
 
+# Initialize colorama for cross-platform colored output
+from colorama import init
+init(autoreset=True)
+
 from .chat_assistant import ChatAssistant
 
 

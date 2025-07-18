@@ -26,7 +26,7 @@ class Name(Field):
         pattern = r"^[a-zA-Z\s\-']{1,100}$"
         if not re.fullmatch(pattern, stripped_value):
             raise ValueError(
-                "Name can contain only letters, spaces, hyphens, and apostrophes"
+                f"Name can contain only letters, spaces, hyphens, and apostrophes. DO NOT MATCH Pattern: {pattern}"
             )
         super().__init__(stripped_value)
 

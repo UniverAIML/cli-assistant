@@ -3,7 +3,7 @@ Assistant Stub Class - contains method stubs for all PersonalAssistant functiona
 This class provides a template for implementing assistant features with AI integration.
 """
 
-from typing import List, Dict, Optional, Any, cast
+from typing import List, Dict, Optional, Any, cast, Union
 from datetime import datetime
 import json
 import re
@@ -127,9 +127,11 @@ class AssistantStub:
                 )
                 birthday_str = record.birthday.value if record.birthday else "N/A"
             else:  # Dict object (for compatibility with old tests)
-                name = record.get("name", "Unknown")
-                phones_str = record.get("phone", "N/A")
-                birthday_str = record.get("birthday", "N/A")
+                # Cast to dict for type checker
+                record_dict = cast(Dict[str, Any], record)
+                name = record_dict.get("name", "Unknown")
+                phones_str = record_dict.get("phone", "N/A")
+                birthday_str = record_dict.get("birthday", "N/A")
 
             print(f"{name:<20} {phones_str:<20} {birthday_str:<15}")
 

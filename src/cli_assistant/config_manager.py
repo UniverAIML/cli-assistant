@@ -23,7 +23,7 @@ class ModelConfig:
 @dataclass
 class OpenAIConfig:
     """Configuration for OpenAI API."""
-    
+
     api_key: Optional[str] = None
     model_name: str = "gpt-3.5-turbo"
     max_tokens: int = 1000
@@ -35,7 +35,7 @@ class OpenAIConfig:
 @dataclass
 class ProviderConfig:
     """Configuration for AI provider selection."""
-    
+
     provider: str = "local"  # "local" or "openai"
     use_openai: bool = False
 
@@ -58,7 +58,7 @@ class ConfigurationManager:
     _instance = None
     _initialized = False
 
-    def __new__(cls) -> 'ConfigurationManager':
+    def __new__(cls) -> "ConfigurationManager":
         if cls._instance is None:
             cls._instance = super().__new__(cls)
         return cls._instance
@@ -80,6 +80,11 @@ class ConfigurationManager:
         os.environ["TRANSFORMERS_VERBOSITY"] = "error"
         os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
+        # Enable detailed HTTP request logs from OpenAI and httpx for debugging
+        logging.getLogger("httpx").setLevel(logging.ERROR)
+        logging.getLogger("openai").setLevel(logging.ERROR)
+        logging.getLogger("openai._base_client").setLevel(logging.ERROR)
+
         # Disable tqdm progress bars globally
         try:
             from tqdm import tqdm  # type: ignore[import-untyped]
@@ -99,12 +104,9 @@ class ConfigurationManager:
         """Setup AI provider configuration based on environment variables."""
         use_openai = os.getenv("USE_OPENAI", "false").lower() == "true"
         provider = "openai" if use_openai else "local"
-        
-        self.provider_config = ProviderConfig(
-            provider=provider,
-            use_openai=use_openai
-        )
-        
+
+        self.provider_config = ProviderConfig(provider=provider, use_openai=use_openai)
+
         self.logger.info(f"AI Provider: {provider}")
 
     def _detect_system_config(self) -> None:
@@ -159,19 +161,21 @@ class ConfigurationManager:
         """Setup OpenAI configuration based on environment variables."""
         api_key = os.getenv("OPENAI_API_KEY")
         model_name = os.getenv("OPENAI_MODEL", "gpt-3.5-turbo")
-        
+
         self.openai_config = OpenAIConfig(
             api_key=api_key,
             model_name=model_name,
             max_tokens=int(os.getenv("OPENAI_MAX_TOKENS", "1000")),
             temperature=float(os.getenv("OPENAI_TEMPERATURE", "0.7")),
             top_p=float(os.getenv("OPENAI_TOP_P", "1.0")),
-            timeout=int(os.getenv("OPENAI_TIMEOUT", "30"))
+            timeout=int(os.getenv("OPENAI_TIMEOUT", "30")),
         )
-        
+
         if self.provider_config.use_openai:
             if not api_key:
-                self.logger.warning("OpenAI API key not found. Set OPENAI_API_KEY environment variable.")
+                self.logger.warning(
+                    "OpenAI API key not found. Set OPENAI_API_KEY environment variable."
+                )
             else:
                 self.logger.info(f"OpenAI model configured: {model_name}")
 
@@ -206,7 +210,9 @@ class ConfigurationManager:
 
     def is_openai_enabled(self) -> bool:
         """Check if OpenAI provider is enabled and configured."""
-        return self.provider_config.use_openai and self.openai_config.api_key is not None
+        return (
+            self.provider_config.use_openai and self.openai_config.api_key is not None
+        )
 
     def get_provider_type(self) -> str:
         """Get the current AI provider type."""

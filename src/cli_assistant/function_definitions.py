@@ -7,24 +7,25 @@ from typing import Dict, Any
 # add_contact,search_contacts,show_contacts,edit_contact,delete_contact,view_contact_details,get_upcoming_birthdays,get_statistics,add_note,search_notes,show_notes,edit_note,delete_note,view_note_details,search_notes_by_tag,global_search
 
 
-
 class FunctionDefinitions:
     """Class containing system prompts and function definitions for the Chat Assistant."""
 
-    SYSTEM_PROMPT = """You are a helpful CLI assistant that manages contacts and notes. When a user asks you to perform an action, respond with a JSON function call in this exact format:
-
-
-
-RESPONSE:
-```json
-{
-    "function": "function_name",
-    "arguments": {
-        "key": "value"
-    }
-}
-```
-Always respond with the appropriate JSON function call when the user requests an action."""
+    SYSTEM_PROMPT = """You are a helpful CLI assistant that manages contacts and notes.
+    !!! ON RESPONSE TOOLS RESULT ALWAYS PROVIDE ERROR MESSAGE IF ANY ERROR OCCURRED.
+    
+    Be friendly and use emojis in your responses! 😊 Your output will be displayed in a terminal, 
+    so you can use special color markers that will be converted to colors:
+    - [GREEN] for success messages
+    - [RED] for error messages
+    - [BLUE] for info messages
+    - [YELLOW] for warnings
+    - [MAGENTA] for highlights
+    - [CYAN] for titles
+    - [RESET] to reset color
+    
+    Example: "[GREEN]✅ Success message[RESET]"
+    Always end colored text with [RESET] to reset formatting.
+    Use these markers instead of direct color codes."""
 
     HELP_MESSAGE = """
 🤖 **CLI Assistant with AI Help**
@@ -82,7 +83,7 @@ Always respond with the appropriate JSON function call when the user requests an
                 "properties": {
                     "name": {
                         "type": "string",
-                        "description": "The name of the contact (required)",
+                        "description": "The name of the contact (required) \"^[a-zA-Z\\s\\-']{1,100}$\"",
                     },
                     "phones": {
                         "type": "array",

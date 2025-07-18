@@ -84,8 +84,12 @@ cli-assistant/
 # =============================================================================
 # AI Provider Configuration
 # =============================================================================
+
 # Choose AI provider: "local" or "openai"
+
 USE_OPENAI=true
+# Hugging Face Token
+HF_TOKEN=API_KEY
 
 # =============================================================================
 # OpenAI Configuration (only used when USE_OPENAI=true)
