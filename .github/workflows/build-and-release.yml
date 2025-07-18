@@ -53,6 +53,9 @@ jobs:
       if: runner.os == 'macOS'
       run: cp pyproject-mac.toml pyproject.toml
 
+    - name: Update poetry lock file
+      run: poetry lock
+
     - name: Install dependencies
       run: poetry install
 
