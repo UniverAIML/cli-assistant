@@ -164,7 +164,7 @@ class ConfigurationManager:
         """Налаштовує системну конфігурацію та виявляє пристрої."""
         # Визначаємо операційну систему
         system_platform = platform.system().lower()
-        
+
         # Заглушки для системної конфігурації (не використовуємо PyTorch)
         device_type = "cpu"  # За замовчуванням CPU
         device_info = "CPU (OpenAI API mode)"
