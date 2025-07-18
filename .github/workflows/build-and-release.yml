@@ -54,7 +54,7 @@ jobs:
       run: cp pyproject-mac.toml pyproject.toml
 
     - name: Update poetry lock file
-      run: poetry lock --no-update
+      run: poetry lock
       shell: bash
 
     - name: Install dependencies
