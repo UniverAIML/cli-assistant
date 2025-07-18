@@ -137,16 +137,21 @@ jobs:
       with:
         path: release-artifacts
 
+    - name: Debug artifact structure
+      run: |
+        echo "🔍 Checking artifact structure:"
+        find release-artifacts -type f -name "*" || ls -la release-artifacts/
+
     - name: Create Release
       uses: softprops/action-gh-release@v1
       with:
         files: |
-          release-artifacts/cli-assistant-windows-x64.exe/*
-          release-artifacts/cli-assistant-linux-x64/*
-          release-artifacts/cli-assistant-macos-x64/*
-          release-artifacts/cli-assistant-macos-arm64/*
-          release-artifacts/python-wheel/*
-          release-artifacts/python-sdist/*
+          release-artifacts/cli-assistant-windows-x64.exe/cli-assistant-windows-x64.exe
+          release-artifacts/cli-assistant-linux-x64/cli-assistant-linux-x64
+          release-artifacts/cli-assistant-macos-x64/cli-assistant-macos-x64
+          release-artifacts/cli-assistant-macos-arm64/cli-assistant-macos-arm64
+          release-artifacts/python-wheel/*.whl
+          release-artifacts/python-sdist/*.tar.gz
         body: |
           ## CLI Assistant Release ${{ github.ref_name }}
           
