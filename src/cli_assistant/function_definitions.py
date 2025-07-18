@@ -22,17 +22,6 @@ RESPONSE:
     }
 }
 ```
-
-Examples:
-User: "add contact John Doe"
-Response: ```json
-{
-    "function": "add_contact",
-    "arguments": {
-        "name": "John Doe"
-    }
-}
-```
 Always respond with the appropriate JSON function call when the user requests an action."""
 
     HELP_MESSAGE = """
