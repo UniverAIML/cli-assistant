@@ -1,5 +1,11 @@
 # CLI Assistant
 
+[![Tests](https://github.com/UniverAIML/cli-assistant/actions/workflows/tests.yml/badge.svg)](https://github.com/UniverAIML/cli-assistant/actions/workflows/tests.yml)
+[![Lint](https://github.com/UniverAIML/cli-assistant/actions/workflows/lint.yml/badge.svg)](https://github.com/UniverAIML/cli-assistant/actions/workflows/lint.yml)
+[![Build and Release](https://github.com/UniverAIML/cli-assistant/actions/workflows/build-and-release.yml/badge.svg)](https://github.com/UniverAIML/cli-assistant/actions/workflows/build-and-release.yml)
+[![Python](https://img.shields.io/badge/python-3.9%2B-blue.svg)](https://www.python.org/downloads/)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+
 Сучасний CLI асистент з AI-чат можливостями для робочих процесів розробки.
 
 ## 🚀 Особливості
@@ -10,7 +16,22 @@
 - **Красиве меню**: Інтерактивне меню з кольоровим форматуванням
 - **OpenAI Integration**: Підтримка OpenAI API для розумних відповідей
 
-## 🖥️ Встановлення
+## � Завантаження
+
+### Готові виконувані файли
+[![Latest Release](https://img.shields.io/github/v/release/UniverAIML/cli-assistant)](https://github.com/UniverAIML/cli-assistant/releases/latest)
+[![Download Count](https://img.shields.io/github/downloads/UniverAIML/cli-assistant/total)](https://github.com/UniverAIML/cli-assistant/releases)
+
+Завантажте готовий виконуваний файл для вашої операційної системи:
+
+- **Windows x64**: `cli-assistant-windows-x64.exe`
+- **Linux x64**: `cli-assistant-linux-x64`
+- **macOS Intel**: `cli-assistant-macos-x64`
+- **macOS Apple Silicon**: `cli-assistant-macos-arm64`
+
+[👉 Завантажити останню версію](https://github.com/UniverAIML/cli-assistant/releases/latest)
+
+## �🖥️ Встановлення
 
 ### Вимоги
 - Python 3.9-3.13
@@ -107,3 +128,43 @@ poetry run cli-assistant-chat
 # With custom model
 OPENAI_MODEL="gpt-4" poetry run cli-assistant
 ```
+
+## 🛠️ Розробка
+
+### Статус збірки
+
+| Платформа | Статус |
+|-----------|--------|
+| **Tests** | [![Tests](https://github.com/UniverAIML/cli-assistant/actions/workflows/tests.yml/badge.svg)](https://github.com/UniverAIML/cli-assistant/actions/workflows/tests.yml) |
+| **Linting** | [![Lint](https://github.com/UniverAIML/cli-assistant/actions/workflows/lint.yml/badge.svg)](https://github.com/UniverAIML/cli-assistant/actions/workflows/lint.yml) |
+| **Build & Release** | [![Build and Release](https://github.com/UniverAIML/cli-assistant/actions/workflows/build-and-release.yml/badge.svg)](https://github.com/UniverAIML/cli-assistant/actions/workflows/build-and-release.yml) |
+
+### Локальна збірка
+
+```bash
+# Збірка для Windows
+build.bat
+
+# Збірка для Linux/macOS  
+./build.sh
+
+# Встановити залежності
+poetry install
+
+# Запустити тести
+poetry run pytest -v
+
+# Перевірка типів
+poetry run mypy src/
+
+# Форматування коду
+poetry run black .
+```
+
+### Технології
+
+- **Python 3.9-3.13**: Основна мова розробки
+- **Poetry**: Управління залежностями
+- **PyInstaller**: Створення виконуваних файлів
+- **GitHub Actions**: CI/CD pipeline
+- **OpenAI API**: AI функціональність
