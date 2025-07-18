@@ -211,7 +211,7 @@ sequenceDiagram
     participant Interface as Інтерфейс (Menu/Chat)
     participant OpsMgr as operations_manager.py
     participant NoteMgr as note_models.py
-    participant Note as Note об'єкти
+    participant NoteObj as Note об'єкти
 
     User->>Interface: Запит на пошук нотаток
     Interface->>OpsMgr: search_notes(query="програмування")
@@ -219,11 +219,11 @@ sequenceDiagram
     NoteMgr->>NoteMgr: Перетворює query в нижній регістр
     
     loop Для кожної нотатки
-        NoteMgr->>Note: search_in_content(query)
-        Note->>Note: Перевіряє заголовок
-        Note->>Note: Перевіряє зміст
-        Note->>Note: Перевіряє теги
-        Note-->>NoteMgr: True/False
+        NoteMgr->>NoteObj: search_in_content(query)
+        NoteObj->>NoteObj: Перевіряє заголовок
+        NoteObj->>NoteObj: Перевіряє зміст
+        NoteObj->>NoteObj: Перевіряє теги
+        NoteObj-->>NoteMgr: True/False
         alt Якщо знайдено збіг
             NoteMgr->>NoteMgr: Додає до результатів
         end
