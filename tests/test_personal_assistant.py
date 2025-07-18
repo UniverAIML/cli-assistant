@@ -13,20 +13,22 @@
 - Тести обробки помилок
 """
 
-import pytest
-import tempfile
 import os
 import sys
-from unittest.mock import patch, MagicMock
+import tempfile
+from unittest.mock import MagicMock, patch
+
+import pytest
 
 # Додаємо src до шляху для імпортів
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
+from cli_assistant.database.contact_models import AddressBook, Record
+from cli_assistant.database.data_manager import DataManager
+from cli_assistant.database.note_models import Note, NotesManager
+
 # Правильні імпорти на основі реальної структури проекту
 from personal_assistant import PersonalAssistant
-from cli_assistant.database.contact_models import AddressBook, Record
-from cli_assistant.database.note_models import NotesManager, Note
-from cli_assistant.database.data_manager import DataManager
 
 
 class TestPersonalAssistant:

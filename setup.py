@@ -3,8 +3,9 @@
 Setup script for CLI Assistant package.
 """
 
-from setuptools import setup, find_packages
 import os
+
+from setuptools import find_packages, setup
 
 
 # Читаємо версію з __init__.py

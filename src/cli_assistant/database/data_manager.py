@@ -14,9 +14,10 @@ AddressBook та NotesManager з використанням JSON серіалі�
 
 import json
 from pathlib import Path
+from typing import Any, Dict, Optional, Tuple
+
 from .contact_models import AddressBook
 from .note_models import NotesManager
-from typing import Dict, Any, Tuple, Optional
 
 
 class DataManager:

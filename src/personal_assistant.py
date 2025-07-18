@@ -13,13 +13,13 @@
 """
 
 import re
-from typing import List, Dict, Any, Optional
-from datetime import datetime, date
+from datetime import date, datetime
+from typing import Any, Dict, List, Optional
 
 # Імпорти моделей даних
 from cli_assistant.database.contact_models import AddressBook, Record
-from cli_assistant.database.note_models import NotesManager, Note
 from cli_assistant.database.data_manager import DataManager
+from cli_assistant.database.note_models import Note, NotesManager
 
 
 class PersonalAssistant:

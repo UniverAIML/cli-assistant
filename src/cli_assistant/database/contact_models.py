@@ -14,11 +14,11 @@
 - AddressBook - колекція контактів з пошуком
 """
 
-from collections import UserDict
-from typing import List, Optional, Dict, TypedDict
-import re
 import json
-from datetime import datetime, date, timedelta
+import re
+from collections import UserDict
+from datetime import date, datetime, timedelta
+from typing import Dict, List, Optional, TypedDict
 
 
 class Field:

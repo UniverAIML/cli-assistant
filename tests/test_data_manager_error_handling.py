@@ -6,12 +6,13 @@ DataManager error handling tests - error conditions and corrupted data.
 import os
 import sys
 import tempfile
+
 import pytest
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
-from cli_assistant.database.data_manager import DataManager
 from cli_assistant.database.contact_models import AddressBook
+from cli_assistant.database.data_manager import DataManager
 from cli_assistant.database.note_models import NotesManager
 
 

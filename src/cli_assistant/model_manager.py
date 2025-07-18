@@ -5,23 +5,23 @@
 - API моделі (OpenAI GPT)
 """
 
-# Імпорт бібліотек для роботи з абстрактними класами та типізацією
-from abc import ABC, abstractmethod
-from typing import Dict, List, Any, Optional, Union, cast, Literal
-from typing_extensions import TypedDict
+import json
 
 # Стандартні бібліотеки Python
 import os
-import json
+
+# Імпорт бібліотек для роботи з абстрактними класами та типізацією
+from abc import ABC, abstractmethod
+from typing import Any, Dict, List, Literal, Optional, Union, cast
 
 # Бібліотека для роботи з OpenAI API
 import openai
 from openai.types.chat import ChatCompletionMessageParam
+from typing_extensions import TypedDict
 
 # Локальні імпорти з нашого проекту
 from .config_manager import ConfigurationManager, LoggerMixin
 from .function_definitions import FunctionDefinitions
-
 
 # Визначення типів повідомлень для чату з використанням TypedDict
 # TypedDict дозволяє створити типізовані словники з фіксованою структурою

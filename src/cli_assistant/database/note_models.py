@@ -16,11 +16,11 @@
 - Серіалізація в JSON
 """
 
-from collections import UserDict
-from typing import List, Optional, Dict, TypedDict
-from datetime import datetime
-import re
 import json
+import re
+from collections import UserDict
+from datetime import datetime
+from typing import Dict, List, Optional, TypedDict
 
 
 class NoteData(TypedDict):

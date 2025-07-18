@@ -12,16 +12,15 @@
 - Збереження та завантаження даних
 """
 
-from typing import List, Dict, Optional, Any, Tuple
-from datetime import datetime, timedelta
-
-import re
 import os
+import re
+from datetime import datetime, timedelta
+from typing import Any, Dict, List, Optional, Tuple
 
 # Імпорти моделей та менеджерів даних
 from .database.contact_models import AddressBook, Record
-from .database.note_models import NotesManager, Note
 from .database.data_manager import DataManager
+from .database.note_models import Note, NotesManager
 
 
 class OperationsManager:

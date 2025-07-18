@@ -5,15 +5,17 @@
 
 import json
 import re
-from typing import Dict, List, Any, Optional
+from typing import Any, Dict, List, Optional
+
 from colorama import Fore, Style
+
+from .config_manager import LoggerMixin
 
 # Локальні імпорти компонентів системи
 from .function_definitions import FunctionDefinitions
 from .function_executor import FunctionExecutor
-from .operations_manager import OperationsManager
 from .model_manager import ModelManager
-from .config_manager import LoggerMixin
+from .operations_manager import OperationsManager
 
 
 class ChatAssistant(LoggerMixin):

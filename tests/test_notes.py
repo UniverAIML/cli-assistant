@@ -10,17 +10,18 @@ Comprehensive tests covering all notes functionality including:
 - Search functionality
 """
 
-import pytest
-from datetime import datetime
-from typing import Dict
-import tempfile
 import os
 import sys
+import tempfile
+from datetime import datetime
+from typing import Dict
+
+import pytest
 
 # Add src to path for imports
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
-from cli_assistant.database.note_models import Note, NotesManager, NoteData
+from cli_assistant.database.note_models import Note, NoteData, NotesManager
 
 
 class TestNote:

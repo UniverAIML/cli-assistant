@@ -12,22 +12,24 @@
 - Кольорова тема та стилізація
 """
 
+from datetime import datetime
+from typing import Any, Dict, List, Optional
+
 import questionary
 from questionary import Style
-from rich.console import Console
-from rich.table import Table
-from rich.panel import Panel
-from rich.text import Text
-from rich.align import Align
 from rich import box
-from typing import List, Dict, Optional, Any
-from datetime import datetime
+from rich.align import Align
+from rich.console import Console
+from rich.panel import Panel
+from rich.table import Table
+from rich.text import Text
 
-# Локальні імпорти
-from .operations_manager import OperationsManager
 from .chat_assistant import ChatAssistant
 from .database.contact_models import Record
 from .database.note_models import Note
+
+# Локальні імпорти
+from .operations_manager import OperationsManager
 
 
 class InteractiveMenu:

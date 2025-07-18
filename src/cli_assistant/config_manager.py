@@ -11,7 +11,7 @@ import logging
 import os
 import platform
 from dataclasses import dataclass
-from typing import Optional, Dict, Any
+from typing import Any, Dict, Optional
 
 
 @dataclass
@@ -164,34 +164,11 @@ class ConfigurationManager:
         """Налаштовує системну конфігурацію та виявляє пристрої."""
         # Визначаємо операційну систему
         system_platform = platform.system().lower()
-
-        # Визначаємо тип пристрою
+        
+        # Заглушки для системної конфігурації (не використовуємо PyTorch)
         device_type = "cpu"  # За замовчуванням CPU
-        device_info = "CPU"
+        device_info = "CPU (OpenAI API mode)"
         device_map = None
-
-        # Перевіряємо наявність CUDA (NVIDIA GPU)
-        try:
-            import torch
-
-            if torch.cuda.is_available():
-                device_type = "cuda"
-                device_info = f"CUDA GPU: {torch.cuda.get_device_name(0)}"
-                device_map = "auto"
-        except ImportError:
-            pass
-
-        # Для macOS перевіряємо MPS (Apple Silicon)
-        if system_platform == "darwin":
-            try:
-                import torch
-
-                if hasattr(torch.backends, "mps") and torch.backends.mps.is_available():
-                    device_type = "mps"
-                    device_info = "Apple Silicon GPU (MPS)"
-                    device_map = None
-            except (ImportError, AttributeError):
-                pass
 
         self.system_config = SystemConfig(
             platform=system_platform,

@@ -6,12 +6,13 @@ Basic DataManager tests - core functionality.
 import os
 import sys
 import tempfile
+
 import pytest
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
-from cli_assistant.database.data_manager import DataManager
 from cli_assistant.database.contact_models import AddressBook, Record
+from cli_assistant.database.data_manager import DataManager
 from cli_assistant.database.note_models import NotesManager
 
 

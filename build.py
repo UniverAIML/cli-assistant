@@ -4,10 +4,10 @@ B    print("🔧 Creating custom spec file...")ild script for creating executabl
 """
 
 import os
-import sys
-import shutil
 import platform
+import shutil
 import subprocess
+import sys
 from pathlib import Path
 
 

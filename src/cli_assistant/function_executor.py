@@ -8,12 +8,13 @@
 - Обробку помилок та винятків
 """
 
-from typing import Dict, Any, List, Optional
 import logging
+from typing import Any, Dict, List, Optional
+
+from .function_definitions import FunctionDefinitions
 
 # Локальні імпорти
 from .operations_manager import OperationsManager
-from .function_definitions import FunctionDefinitions
 
 
 class FunctionResult:

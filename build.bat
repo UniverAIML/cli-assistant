@@ -40,7 +40,7 @@ pyinstaller --onefile ^
     --distpath dist\executables ^
     --workpath build\temp ^
     --specpath build\specs ^
-    --icon src\cli_assistant\icon.png ^
+    --icon %cd%\src\cli_assistant\icon.png ^
     src\cli_assistant\main.py
 
 if exist "dist\executables\cli-assistant-windows-x64.exe" (

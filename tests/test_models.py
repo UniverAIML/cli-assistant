@@ -11,25 +11,27 @@
 - Обробку помилок
 """
 
-import sys
 import os
+import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
+import os
+import tempfile
+from datetime import date, timedelta
+
 import pytest
+
 from cli_assistant.database.contact_models import (
+    AddressBook,
+    Birthday,
+    ContactData,
     Field,
     Name,
     Phone,
     Record,
-    AddressBook,
-    ContactData,
-    Birthday,
 )
 from cli_assistant.database.data_manager import DataManager
-from datetime import date, timedelta
-import tempfile
-import os
 
 
 class TestField:

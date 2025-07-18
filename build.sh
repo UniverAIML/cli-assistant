@@ -57,9 +57,9 @@ mkdir -p "build/specs"
 # Additional flags for macOS
 EXTRA_FLAGS=""
 if [ "$OS" = "darwin" ]; then
-    EXTRA_FLAGS="--osx-bundle-identifier com.univer.cli-assistant --icon src/cli_assistant/icon.png"
+    EXTRA_FLAGS="--osx-bundle-identifier com.univer.cli-assistant --icon $(pwd)/src/cli_assistant/icon.png"
 else
-    EXTRA_FLAGS="--icon src/cli_assistant/icon.png"
+    EXTRA_FLAGS="--icon $(pwd)/src/cli_assistant/icon.png"
 fi
 
 pyinstaller --onefile \
