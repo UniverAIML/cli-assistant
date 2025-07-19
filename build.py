@@ -89,6 +89,12 @@ a = Analysis(
         'rich.panel',
         'colorama',
         'tabulate',
+        # Visual effects dependencies
+        'textual',
+        'pyfiglet',
+        'halo',
+        'tqdm',
+        'art',
     ],
     hookspath=[],
     hooksconfig={{}},
