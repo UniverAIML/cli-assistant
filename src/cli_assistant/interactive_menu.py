@@ -25,7 +25,7 @@ from rich.table import Table
 from rich.text import Text
 
 from .chat_assistant import ChatAssistant
-from .database.contact_models import Record
+from .database.contact_models import Birthday, Name, Phone, Record
 from .database.note_models import Note
 
 # Локальні імпорти
@@ -62,8 +62,8 @@ class InteractiveMenu:
         # Ініціалізуємо Rich console для красивого виводу
         self.console = Console()
 
-        # Ініціалізуємо менеджер операцій
-        self.operations = OperationsManager()
+        # Ініціалізуємо менеджер операцій (Singleton)
+        self.operations = OperationsManager.get_instance()
 
         # Кастомний стиль для questionary (темна тема з кольорами)
         self.custom_style = Style(
@@ -171,12 +171,25 @@ class InteractiveMenu:
         self.console.print("[bold green]Adding New Contact[/bold green]")
         self.console.print()
 
-        name = questionary.text("Enter name:", style=self.custom_style).ask()
-        if not name:
-            self.console.print("[red]Name cannot be empty![/red]")
-            return
+        # Валідуємо ім'я використовуючи наш клас Name
+        while True:
+            name_input = questionary.text("Enter name:", style=self.custom_style).ask()
+            if not name_input:
+                self.console.print("[red]Name cannot be empty![/red]")
+                return
 
-        phones = []
+            try:
+                name_obj = Name(name_input)
+                name = name_obj.value
+                self.console.print(f"[green]✓ Valid name: {name}[/green]")
+                break
+            except ValueError as e:
+                self.console.print(f"[red]✗ {e}[/red]")
+                retry = questionary.confirm("Try again?", style=self.custom_style).ask()
+                if not retry:
+                    return
+
+        phones: List[str] = []
         # Add phone numbers
         while True:
             add_phone = questionary.confirm(
@@ -189,7 +202,16 @@ class InteractiveMenu:
                 "Enter phone number (10 digits):", style=self.custom_style
             ).ask()
             if phone:
-                phones.append(phone)
+                try:
+                    # Валідуємо номер телефону використовуючи наш клас Phone
+                    phone_obj = Phone(phone)
+                    phones.append(phone_obj.value)  # Зберігаємо значення, а не об'єкт
+                    self.console.print(
+                        f"[green]✓ Valid phone number: {phone_obj.value}[/green]"
+                    )
+                except ValueError as e:
+                    self.console.print(f"[red]✗ {e}[/red]")
+                    continue
 
             # Ask if user wants to add another phone
             if not questionary.confirm(
@@ -203,9 +225,28 @@ class InteractiveMenu:
             "Add birthday?", style=self.custom_style
         ).ask()
         if add_birthday:
-            birthday = questionary.text(
-                "Enter birthday (DD.MM.YYYY):", style=self.custom_style
-            ).ask()
+            while True:
+                birthday_input = questionary.text(
+                    "Enter birthday (DD.MM.YYYY):", style=self.custom_style
+                ).ask()
+                if birthday_input:
+                    try:
+                        # Валідуємо день народження використовуючи наш клас Birthday
+                        birthday_obj = Birthday(birthday_input)
+                        birthday = birthday_obj.value
+                        self.console.print(
+                            f"[green]✓ Valid birthday: {birthday_obj.value}[/green]"
+                        )
+                        break
+                    except ValueError as e:
+                        self.console.print(f"[red]✗ {e}[/red]")
+                        retry = questionary.confirm(
+                            "Try again?", style=self.custom_style
+                        ).ask()
+                        if not retry:
+                            break
+                else:
+                    break
 
         # Add the contact
         result = self.operations.add_contact(name, phones if phones else None, birthday)
@@ -387,15 +428,31 @@ class InteractiveMenu:
         ).ask()
 
         if action == "Add phone":
-            phone = questionary.text(
-                "Enter new phone number (10 digits):", style=self.custom_style
-            ).ask()
-            if phone:
-                result = self.operations.edit_contact(name, "add_phone", phone=phone)
-                if result["success"]:
-                    self.console.print(f"[green]{result['message']}[/green]")
+            while True:
+                phone = questionary.text(
+                    "Enter new phone number (10 digits):", style=self.custom_style
+                ).ask()
+                if phone:
+                    try:
+                        # Валідуємо номер телефону
+                        phone_obj = Phone(phone)
+                        result = self.operations.edit_contact(
+                            name, "add_phone", phone=phone_obj.value
+                        )
+                        if result["success"]:
+                            self.console.print(f"[green]{result['message']}[/green]")
+                        else:
+                            self.console.print(f"[red]{result['message']}[/red]")
+                        break
+                    except ValueError as e:
+                        self.console.print(f"[red]✗ {e}[/red]")
+                        retry = questionary.confirm(
+                            "Try again?", style=self.custom_style
+                        ).ask()
+                        if not retry:
+                            break
                 else:
-                    self.console.print(f"[red]{result['message']}[/red]")
+                    break
 
         elif action == "Remove phone":
             if not contact["phones"]:
@@ -427,30 +484,63 @@ class InteractiveMenu:
             ).ask()
 
             if old_phone:
-                new_phone = questionary.text(
-                    "Enter new phone number (10 digits):", style=self.custom_style
-                ).ask()
-                if new_phone:
-                    result = self.operations.edit_contact(
-                        name, "change_phone", phone=old_phone, new_phone=new_phone
-                    )
-                    if result["success"]:
-                        self.console.print(f"[green]{result['message']}[/green]")
+                while True:
+                    new_phone = questionary.text(
+                        "Enter new phone number (10 digits):", style=self.custom_style
+                    ).ask()
+                    if new_phone:
+                        try:
+                            # Валідуємо новий номер телефону
+                            phone_obj = Phone(new_phone)
+                            result = self.operations.edit_contact(
+                                name,
+                                "change_phone",
+                                phone=old_phone,
+                                new_phone=phone_obj.value,
+                            )
+                            if result["success"]:
+                                self.console.print(
+                                    f"[green]{result['message']}[/green]"
+                                )
+                            else:
+                                self.console.print(f"[red]{result['message']}[/red]")
+                            break
+                        except ValueError as e:
+                            self.console.print(f"[red]✗ {e}[/red]")
+                            retry = questionary.confirm(
+                                "Try again?", style=self.custom_style
+                            ).ask()
+                            if not retry:
+                                break
                     else:
-                        self.console.print(f"[red]{result['message']}[/red]")
+                        break
 
         elif action == "Add/Change birthday":
-            birthday = questionary.text(
-                "Enter birthday (DD.MM.YYYY):", style=self.custom_style
-            ).ask()
-            if birthday:
-                result = self.operations.edit_contact(
-                    name, "add_birthday", birthday=birthday
-                )
-                if result["success"]:
-                    self.console.print(f"[green]{result['message']}[/green]")
+            while True:
+                birthday = questionary.text(
+                    "Enter birthday (DD.MM.YYYY):", style=self.custom_style
+                ).ask()
+                if birthday:
+                    try:
+                        # Валідуємо день народження
+                        birthday_obj = Birthday(birthday)
+                        result = self.operations.edit_contact(
+                            name, "add_birthday", birthday=birthday_obj.value
+                        )
+                        if result["success"]:
+                            self.console.print(f"[green]{result['message']}[/green]")
+                        else:
+                            self.console.print(f"[red]{result['message']}[/red]")
+                        break
+                    except ValueError as e:
+                        self.console.print(f"[red]✗ {e}[/red]")
+                        retry = questionary.confirm(
+                            "Try again?", style=self.custom_style
+                        ).ask()
+                        if not retry:
+                            break
                 else:
-                    self.console.print(f"[red]{result['message']}[/red]")
+                    break
 
     def edit_note(self) -> None:
         """Edit an existing note."""

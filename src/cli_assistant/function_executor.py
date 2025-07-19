@@ -63,7 +63,7 @@ class FunctionExecutor:
         Args:
             operations: Менеджер операцій (якщо None, створюється новий)
         """
-        self.operations = operations or OperationsManager()
+        self.operations = operations or OperationsManager.get_instance()
         self.logger = logging.getLogger(self.__class__.__name__)
 
     def execute_function_call(

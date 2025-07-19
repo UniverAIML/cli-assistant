@@ -43,7 +43,7 @@ class ChatAssistant(LoggerMixin):
         self.model_manager = ModelManager()
 
         # Ініціалізуємо менеджер операцій для роботи з контактами та нотатками
-        self.operations = OperationsManager()
+        self.operations = OperationsManager.get_instance()
 
         # Ініціалізуємо виконавець функцій
         self.function_executor = FunctionExecutor(self.operations)

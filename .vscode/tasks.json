@@ -51,6 +51,19 @@
 			"problemMatcher": []
 		},
 		{
+			"label": "Sort Imports",
+			"type": "shell",
+			"command": "poetry",
+			"args": [
+				"run",
+				"isort",
+				"."
+			],
+			"group": "build",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
 			"label": "Check Types",
 			"type": "shell",
 			"command": "poetry",
@@ -74,6 +87,26 @@
 			"group": "build",
 			"isBackground": false,
 			"problemMatcher": []
+		},
+		{
+			"label": "Full Code Check",
+			"type": "shell",
+			"command": "cmd",
+			"args": [
+				"/c",
+				"poetry run isort . && poetry run black . && poetry run mypy src/ && poetry run pytest -v && echo ✅ All checks passed!"
+			],
+			"group": "build",
+			"isBackground": false,
+			"problemMatcher": ["$python"],
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": false,
+				"panel": "shared",
+				"showReuseMessage": true,
+				"clear": false
+			}
 		}
 	]
 }

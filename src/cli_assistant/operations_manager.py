@@ -30,6 +30,8 @@ class OperationsManager:
     Цей клас забезпечує чистий інтерфейс для всіх операцій, який може використовуватися
     як системою інтерактивного меню, так і AI асистентом.
 
+    Реалізований як Singleton для забезпечення синхронізації даних між різними компонентами.
+
     Основні можливості:
     - Централізоване управління даними
     - Уніфікований API для різних інтерфейсів
@@ -37,6 +39,17 @@ class OperationsManager:
     - Валідація даних
     - Обробка помилок
     """
+
+    _instance = None
+    _initialized = False
+
+    def __new__(cls) -> "OperationsManager":
+        """
+        Створює новий екземпляр або повертає існуючий (Singleton pattern).
+        """
+        if cls._instance is None:
+            cls._instance = super(OperationsManager, cls).__new__(cls)
+        return cls._instance
 
     def __init__(self) -> None:
         """
@@ -46,9 +59,30 @@ class OperationsManager:
         - DataManager для роботи з файлами
         - AddressBook для контактів
         - NotesManager для нотаток
+
+        Ініціалізація відбувається тільки один раз завдяки Singleton pattern.
         """
+        # Перевіряємо чи вже була ініціалізація
+        if OperationsManager._initialized:
+            return
+
         self.data_manager = DataManager()
         self.address_book, self.notes_manager = self.data_manager.load_data()
+
+        # Помічаємо що ініціалізація завершена
+        OperationsManager._initialized = True
+
+    @classmethod
+    def get_instance(cls) -> "OperationsManager":
+        """
+        Отримує екземпляр OperationsManager (Singleton).
+
+        Returns:
+            OperationsManager: Єдиний екземпляр класу
+        """
+        if cls._instance is None:
+            cls._instance = cls()
+        return cls._instance
 
     def save_data(self) -> bool:
         """
