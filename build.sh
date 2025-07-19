@@ -44,20 +44,20 @@ EXE_NAME="cli-assistant-${OS}-${ARCH}"
 
 echo "🎯 Building for: ${OS} ${ARCH}"
 
-# Choose the right Python command
-if command -v python3 &> /dev/null; then
-    PYTHON_CMD="python3"
-elif command -v python &> /dev/null; then
-    PYTHON_CMD="python"
-else
-    echo "❌ Error: Python not found!"
+# Check if Poetry is available
+if ! command -v poetry &> /dev/null; then
+    echo "❌ Error: Poetry not found!"
+    echo "   Please install Poetry first: https://python-poetry.org/docs/#installation"
     exit 1
 fi
 
-echo "� Using Python: $PYTHON_CMD"
+echo "🐍 Using Poetry environment"
 
-echo "�📦 Installing PyInstaller..."
-$PYTHON_CMD -m pip install pyinstaller
+echo "📦 Installing dependencies..."
+poetry install
+
+echo "📦 Installing PyInstaller and Pillow..."
+poetry run pip install pyinstaller pillow
 
 echo "🔨 Building executable..."
 mkdir -p "dist/executables"
@@ -72,7 +72,7 @@ else
     EXTRA_FLAGS="--icon $(pwd)/src/cli_assistant/icon.png"
 fi
 
-pyinstaller --onefile \
+poetry run pyinstaller --onefile \
     --name "$EXE_NAME" \
     --distpath "dist/executables" \
     --workpath "build/temp" \
