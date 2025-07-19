@@ -469,7 +469,8 @@ class AddressBook(UserDict[str, Record]):
                 if 0 <= days_until_birthday <= days:
                     congratulation_date = birthday_this_year
                     if birthday_this_year.weekday() >= 5:  # 5 = субота, 6 = неділя
-                        days_until_monday = days - birthday_this_year.weekday()
+                        # Переносимо на наступний понеділок
+                        days_until_monday = 7 - birthday_this_year.weekday()
                         congratulation_date = birthday_this_year + timedelta(
                             days=days_until_monday
                         )
