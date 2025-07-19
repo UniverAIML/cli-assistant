@@ -112,6 +112,26 @@ jobs:
       run: poetry run pip install pyinstaller pillow
       shell: bash
 
+    - name: Verify icon files exist
+      run: |
+        echo "🔍 Checking for icon files..."
+        if [ "$RUNNER_OS" == "Windows" ]; then
+          if [ -f "src/cli_assistant/icon.ico" ]; then
+            echo "✅ Windows icon found: src/cli_assistant/icon.ico"
+          else
+            echo "❌ Windows icon not found: src/cli_assistant/icon.ico"
+            exit 1
+          fi
+        else
+          if [ -f "src/cli_assistant/icon.png" ]; then
+            echo "✅ Unix icon found: src/cli_assistant/icon.png"
+          else
+            echo "❌ Unix icon not found: src/cli_assistant/icon.png"
+            exit 1
+          fi
+        fi
+      shell: bash
+
     - name: Build executable
       run: |
         mkdir -p "dist/executables"
@@ -121,7 +141,7 @@ jobs:
             --distpath "dist/executables" \
             --workpath "build/temp" \
             --specpath "build/specs" \
-            --icon "src/cli_assistant/icon.ico" \
+            --icon "$(pwd)/src/cli_assistant/icon.ico" \
             --hidden-import=colorama \
             --hidden-import=openai \
             --hidden-import=questionary \
@@ -140,10 +160,10 @@ jobs:
             "src/cli_assistant/main.py"
         else
           if [ "$RUNNER_OS" == "macOS" ]; then
-            ICON_FLAG="--icon src/cli_assistant/icon.png"
+            ICON_FLAG="--icon $(pwd)/src/cli_assistant/icon.png"
             EXTRA_FLAGS="--osx-bundle-identifier com.univer.cli-assistant"
           else
-            ICON_FLAG="--icon src/cli_assistant/icon.png"
+            ICON_FLAG="--icon $(pwd)/src/cli_assistant/icon.png"
             EXTRA_FLAGS=""
           fi
           
