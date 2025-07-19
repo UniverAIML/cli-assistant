@@ -108,13 +108,68 @@ jobs:
       run: poetry install
       shell: bash
 
+    - name: Install PyInstaller and Pillow
+      run: poetry run pip install pyinstaller pillow
+      shell: bash
+
     - name: Build executable
       run: |
+        mkdir -p "dist/executables"
         if [ "$RUNNER_OS" == "Windows" ]; then
-          cmd //c "${{ matrix.build_script }}"
+          poetry run pyinstaller --onefile \
+            --name "${{ matrix.artifact_name }}" \
+            --distpath "dist/executables" \
+            --workpath "build/temp" \
+            --specpath "build/specs" \
+            --icon "src/cli_assistant/icon.ico" \
+            --hidden-import=colorama \
+            --hidden-import=openai \
+            --hidden-import=questionary \
+            --hidden-import=rich \
+            --hidden-import=tabulate \
+            --hidden-import=cli_assistant.chat_assistant \
+            --hidden-import=cli_assistant.interactive_menu \
+            --hidden-import=cli_assistant.config_manager \
+            --hidden-import=cli_assistant.function_definitions \
+            --hidden-import=cli_assistant.function_executor \
+            --hidden-import=cli_assistant.model_manager \
+            --hidden-import=cli_assistant.operations_manager \
+            --hidden-import=cli_assistant.database.data_manager \
+            --hidden-import=cli_assistant.database.contact_models \
+            --hidden-import=cli_assistant.database.note_models \
+            "src/cli_assistant/main.py"
         else
-          chmod +x ${{ matrix.build_script }}
-          ./${{ matrix.build_script }}
+          if [ "$RUNNER_OS" == "macOS" ]; then
+            ICON_FLAG="--icon src/cli_assistant/icon.png"
+            EXTRA_FLAGS="--osx-bundle-identifier com.univer.cli-assistant"
+          else
+            ICON_FLAG="--icon src/cli_assistant/icon.png"
+            EXTRA_FLAGS=""
+          fi
+          
+          poetry run pyinstaller --onefile \
+            --name "${{ matrix.artifact_name }}" \
+            --distpath "dist/executables" \
+            --workpath "build/temp" \
+            --specpath "build/specs" \
+            $ICON_FLAG \
+            $EXTRA_FLAGS \
+            --hidden-import=colorama \
+            --hidden-import=openai \
+            --hidden-import=questionary \
+            --hidden-import=rich \
+            --hidden-import=tabulate \
+            --hidden-import=cli_assistant.chat_assistant \
+            --hidden-import=cli_assistant.interactive_menu \
+            --hidden-import=cli_assistant.config_manager \
+            --hidden-import=cli_assistant.function_definitions \
+            --hidden-import=cli_assistant.function_executor \
+            --hidden-import=cli_assistant.model_manager \
+            --hidden-import=cli_assistant.operations_manager \
+            --hidden-import=cli_assistant.database.data_manager \
+            --hidden-import=cli_assistant.database.contact_models \
+            --hidden-import=cli_assistant.database.note_models \
+            "src/cli_assistant/main.py"
         fi
       shell: bash
 
@@ -206,7 +261,7 @@ jobs:
         body: |
           ## CLI Assistant Release ${{ needs.create-tag.outputs.tag }}
           
-          🚀 **Автоматический релиз** создан $(date +'%Y-%m-%d %H:%M:%S UTC')
+          🚀 **Automated release** created ${{ needs.create-tag.outputs.tag }}
           
           ### 🎯 Available Downloads:
           
@@ -234,7 +289,7 @@ jobs:
           - No Python required for standalone executables
           - Python 3.9+ required for wheel installation
           
-          ### � Build Information:
+          ### 🔧 Build Information:
           - **Commit**: ${{ github.sha }}
           - **Branch**: ${{ github.ref_name }}
           - **Build Number**: ${{ github.run_number }}

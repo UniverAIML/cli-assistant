@@ -41,6 +41,21 @@ pyinstaller --onefile ^
     --workpath build\temp ^
     --specpath build\specs ^
     --icon %cd%\src\cli_assistant\icon.ico ^
+    --hidden-import=colorama ^
+    --hidden-import=openai ^
+    --hidden-import=questionary ^
+    --hidden-import=rich ^
+    --hidden-import=tabulate ^
+    --hidden-import=cli_assistant.chat_assistant ^
+    --hidden-import=cli_assistant.interactive_menu ^
+    --hidden-import=cli_assistant.config_manager ^
+    --hidden-import=cli_assistant.function_definitions ^
+    --hidden-import=cli_assistant.function_executor ^
+    --hidden-import=cli_assistant.model_manager ^
+    --hidden-import=cli_assistant.operations_manager ^
+    --hidden-import=cli_assistant.database.data_manager ^
+    --hidden-import=cli_assistant.database.contact_models ^
+    --hidden-import=cli_assistant.database.note_models ^
     src\cli_assistant\main.py
 
 if exist "dist\executables\cli-assistant-windows-x64.exe" (
