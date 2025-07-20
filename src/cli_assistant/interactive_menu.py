@@ -898,9 +898,7 @@ class InteractiveMenu:
 
             # Start custom chat loop
             while True:
-                user_input = questionary.text(
-                    "You:", style=self.custom_style
-                ).ask()
+                user_input = questionary.text("You:", style=self.custom_style).ask()
                 if not user_input or user_input.strip().lower() in [
                     "back",
                     "exit",
@@ -969,14 +967,17 @@ class InteractiveMenu:
                 self.view_contact_details()
             elif choice == "🎂 Upcoming Birthdays":
                 days_input = questionary.text(
-                    "Show birthdays in how many days? (default: 7)", style=self.custom_style
+                    "Show birthdays in how many days? (default: 7)",
+                    style=self.custom_style,
                 ).ask()
                 try:
                     days = int(days_input) if days_input and int(days_input) > 0 else 7
                 except Exception:
                     days = 7
                 upcoming = self.operations.get_upcoming_birthdays(days)
-                self.console.print(f"\n[bold cyan]Upcoming Birthdays (next {days} days):[/bold cyan]")
+                self.console.print(
+                    f"\n[bold cyan]Upcoming Birthdays (next {days} days):[/bold cyan]"
+                )
                 if upcoming:
                     # Convert upcoming birthdays to records for display
                     upcoming_records = []
