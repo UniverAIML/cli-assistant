@@ -82,6 +82,11 @@ poetry run pyinstaller --onefile \
     --hidden-import=questionary \
     --hidden-import=rich \
     --hidden-import=tabulate \
+    --hidden-import=textual \
+    --hidden-import=pyfiglet \
+    --hidden-import=halo \
+    --hidden-import=tqdm \
+    --hidden-import=art \
     --hidden-import=cli_assistant.chat_assistant \
     --hidden-import=cli_assistant.interactive_menu \
     --hidden-import=cli_assistant.config_manager \

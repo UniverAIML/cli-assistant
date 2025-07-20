@@ -8,10 +8,12 @@
 - Управління контактами (CRUD операції)
 - Управління нотатками (CRUD операції)
 - Інтеграція з AI чат-асистентом
-- Пошук та фільтрація
+- Search and filtering
 - Кольорова тема та стилізація
+- Потужні візуальні ефекти та анімації
 """
 
+import time
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
@@ -21,13 +23,21 @@ from rich import box
 from rich.align import Align
 from rich.console import Console
 from rich.panel import Panel
+from rich.progress import track
 from rich.table import Table
 from rich.text import Text
 
 from .chat_assistant import ChatAssistant
 from .database.contact_models import Birthday, Name, Phone, Record
 from .database.note_models import Note
+from .enhanced_visual_effects import EnhancedVisualEffects
+from .interactive_table import (
+    show_interactive_contacts_table,
+    show_interactive_notes_table,
+    show_mouse_menu,
+)
 
+# Local imports
 # Локальні імпорти
 from .operations_manager import OperationsManager
 
@@ -52,15 +62,19 @@ class InteractiveMenu:
 
     def __init__(self) -> None:
         """
-        Ініціалізує інтерактивне меню.
+        Ініціалізує інтерактивне меню з покращеними візуальними ефектами.
 
         Створює:
         - Rich console для форматування
         - OperationsManager для операцій
+        - EnhancedVisualEffects для анімацій та ефектів
         - Кастомний стиль для questionary
         """
         # Ініціалізуємо Rich console для красивого виводу
         self.console = Console()
+
+        # Ініціалізуємо покращені візуальні ефекти
+        self.effects = EnhancedVisualEffects(self.console)
 
         # Ініціалізуємо менеджер операцій (Singleton)
         self.operations = OperationsManager.get_instance()
@@ -80,53 +94,51 @@ class InteractiveMenu:
             ]
         )
 
+        # Показуємо стартову анімацію
+        self.effects.display_startup_sequence("CLI Assistant")
+
         # Показуємо кількість завантажених даних при старті
         data_summary = self.operations.get_data_summary()
         if data_summary["contacts"] > 0 or data_summary["notes"] > 0:
-            self.console.print(
-                f"[green]Loaded {data_summary['contacts']} contacts and {data_summary['notes']} notes from previous session.[/green]"
+            self.effects.display_info_message(
+                f"Loaded {data_summary['contacts']} contacts and {data_summary['notes']} notes from previous session.",
+                "SYSTEM STATUS",
             )
 
+    def display_startup_animation(self) -> None:
+        """Відображає красиву стартову анімацію з покращеними ефектами."""
+        self.effects.display_startup_sequence("CLI Assistant")
+
     def display_welcome(self) -> None:
-        """Display beautiful welcome screen."""
+        """Відображає красивий екран привітання з покращеними візуальними ефектами."""
         self.console.clear()
 
-        welcome_text = Text("Personal Assistant", style="bold blue")
-        welcome_text.stylize("bold magenta", 0, 8)
-        welcome_text.stylize("bold cyan", 9, 18)
-
-        panel = Panel(
-            Align.center(welcome_text),
-            box=box.DOUBLE,
-            padding=(1, 2),
-            style="bright_blue",
+        # Використовуємо нові візуальні ефекти для заголовка
+        self.effects.display_animated_title(
+            "CLI Assistant", "🤖 Your Next-Generation Personal AI Assistant ✨"
         )
 
-        self.console.print()
-        self.console.print(panel)
-        self.console.print()
-
-        info_text = Text(
-            "Welcome to your personal assistant! Manage contacts and notes with ease.",
-            style="italic bright_white",
-        )
-        self.console.print(Align.center(info_text))
+        # Додаємо розділювач з ефектами
+        self.effects.create_gradient_rule("🌟 MAIN MENU 🌟")
         self.console.print()
 
     def display_contacts_table(self, records: Optional[List[Record]] = None) -> None:
-        """Display contacts in a beautiful table."""
+        """Display contacts in an interactive table with search and mouse support."""
         if records is None:
             records = self.operations.get_all_contacts()
 
         if not records:
-            self.console.print("[yellow]No contacts found.[/yellow]")
+            self.effects.display_info_message(
+                "No contacts found. Add a new contact to get started!",
+                "CONTACTS DATABASE",
+            )
             return
 
-        table = Table(show_header=True, header_style="bold magenta", box=box.ROUNDED)
-        table.add_column("Name", style="cyan", width=20)
-        table.add_column("Phones", style="green", width=25)
-        table.add_column("Birthday", style="red", width=12)
+        # Show loading animation
+        self.effects.display_loading_animation("Loading contacts...", 0.5)
 
+        # Convert records to dict format for interactive table
+        contacts_data = []
         for record in records:
             phones_str = (
                 "; ".join(phone.value for phone in record.phones)
@@ -135,47 +147,172 @@ class InteractiveMenu:
             )
             birthday_str = record.birthday.value if record.birthday else "No birthday"
 
-            table.add_row(record.name.value, phones_str, birthday_str)
+            contacts_data.append(
+                {
+                    "Name": record.name.value,
+                    "Phones": phones_str,
+                    "Birthday": birthday_str,
+                }
+            )
 
+        # Show interactive table
+        try:
+            show_interactive_contacts_table(contacts_data)
+        except Exception as e:
+            # Fallback to regular table if interactive fails
+            self.console.print(
+                f"[yellow]Interactive mode failed, showing regular table: {e}[/yellow]"
+            )
+            self._display_fallback_contacts_table(records)
+
+    def _display_fallback_contacts_table(self, records: List[Record]) -> None:
+        """Fallback method for displaying contacts table."""
+        # Create beautiful table with enhanced style
+        table = Table(
+            show_header=True,
+            header_style="bold bright_white on blue",
+            box=box.DOUBLE_EDGE,
+            border_style="bright_blue",
+            title="📞 CONTACTS DATABASE 📞",
+            title_style="bold bright_magenta",
+        )
+
+        table.add_column("👤 Name", style="bold cyan", width=20)
+        table.add_column("📱 Phones", style="bright_green", width=25)
+        table.add_column("🎂 Birthday", style="bright_yellow", width=15)
+
+        # Add rows with alternating styles
+        for i, record in enumerate(records):
+            phones_str = (
+                "; ".join(phone.value for phone in record.phones)
+                if record.phones
+                else "❌ No phones"
+            )
+            birthday_str = record.birthday.value if record.birthday else "❓ Unknown"
+
+            # Alternate row styles for better readability
+            row_style = "dim" if i % 2 == 0 else "none"
+            table.add_row(
+                f"✨ {record.name.value}", phones_str, birthday_str, style=row_style
+            )
+
+        # Apply additional effects to table
+        table = self.effects.create_fancy_table_style(table)
         self.console.print(table)
 
+        # Show statistics
+        self.console.print(
+            f"\n[bold bright_green]📊 Total contacts: {len(records)}[/bold bright_green]"
+        )
+
     def display_notes_table(self, notes_dict: Optional[Dict[str, Note]] = None) -> None:
-        """Display notes in a beautiful table."""
+        """Display notes in an interactive table with search and mouse support."""
         if notes_dict is None:
             notes_dict = self.operations.get_all_notes()
 
         if not notes_dict:
-            self.console.print("[yellow]No notes found.[/yellow]")
+            self.effects.display_info_message(
+                "No notes found. Create a new note to get started!", "NOTES DATABASE"
+            )
             return
 
-        table = Table(show_header=True, header_style="bold magenta", box=box.ROUNDED)
-        table.add_column("ID", style="dim", width=10)
-        table.add_column("Title", style="cyan", width=20)
-        table.add_column("Content", style="white", width=40)
-        table.add_column("Tags", style="green", width=20)
-        table.add_column("Created", style="yellow", width=15)
+        # Show loading animation
+        self.effects.display_loading_animation("Loading notes...", 0.5)
 
+        # Convert notes to dict format for interactive table
+        notes_data = []
         for note_id, note in notes_dict.items():
             content_preview = (
                 note.content[:37] + "..." if len(note.content) > 40 else note.content
             )
-            tags_str = ", ".join(note.tags) if note.tags else "No tags"
+            tags_str = (
+                ", ".join(f"#{tag}" for tag in note.tags) if note.tags else "No tags"
+            )
             created_date = note.created_at.split()[0] if note.created_at else "Unknown"
 
-            table.add_row(note_id, note.title, content_preview, tags_str, created_date)
+            notes_data.append(
+                {
+                    "ID": note_id,
+                    "Title": note.title,
+                    "Content": content_preview,
+                    "Tags": tags_str,
+                    "Created": created_date,
+                }
+            )
 
+        # Show interactive table
+        try:
+            show_interactive_notes_table(notes_data)
+        except Exception as e:
+            # Fallback to regular table if interactive fails
+            self.console.print(
+                f"[yellow]Interactive mode failed, showing regular table: {e}[/yellow]"
+            )
+            self._display_fallback_notes_table(notes_dict)
+
+    def _display_fallback_notes_table(self, notes_dict: Dict[str, Note]) -> None:
+        """Fallback method for displaying notes table."""
+        # Create beautiful table with enhanced style
+        table = Table(
+            show_header=True,
+            header_style="bold bright_white on magenta",
+            box=box.DOUBLE_EDGE,
+            border_style="bright_magenta",
+            title="📝 NOTES DATABASE 📝",
+            title_style="bold bright_cyan",
+        )
+
+        table.add_column("🆔 ID", style="dim white", width=8)
+        table.add_column("📋 Title", style="bold bright_cyan", width=20)
+        table.add_column("📄 Content", style="bright_white", width=40)
+        table.add_column("🏷️ Tags", style="bright_green", width=20)
+        table.add_column("📅 Created", style="bright_yellow", width=12)
+
+        for i, (note_id, note) in enumerate(notes_dict.items()):
+            content_preview = (
+                note.content[:37] + "..." if len(note.content) > 40 else note.content
+            )
+            tags_str = (
+                ", ".join(f"#{tag}" for tag in note.tags) if note.tags else "❌ No tags"
+            )
+            created_date = (
+                note.created_at.split()[0] if note.created_at else "❓ Unknown"
+            )
+
+            # Alternate row styles for better readability
+            row_style = "dim" if i % 2 == 0 else "none"
+            table.add_row(
+                f"🔸 {note_id}",
+                f"✨ {note.title}",
+                content_preview,
+                tags_str,
+                created_date,
+                style=row_style,
+            )
+
+        # Apply additional effects to table
+        table = self.effects.create_fancy_table_style(table)
         self.console.print(table)
 
+        # Show statistics
+        self.console.print(
+            f"\n[bold bright_green]📊 Total notes: {len(notes_dict)}[/bold bright_green]"
+        )
+
     def add_contact(self) -> None:
-        """Add a new contact with validation."""
-        self.console.print("[bold green]Adding New Contact[/bold green]")
-        self.console.print()
+        """Add a new contact with validation and enhanced visual effects."""
+        self.effects.create_gradient_rule("✨ ADDING NEW CONTACT ✨")
+
+        # Анимация загрузки формы
+        self.effects.display_loading_animation("Preparing form...", 0.5)
 
         # Валідуємо ім'я використовуючи наш клас Name
         while True:
-            name_input = questionary.text("Enter name:", style=self.custom_style).ask()
+            name_input = questionary.text(
+                "👤 Enter contact name:", style=self.custom_style
+            ).ask()
             if not name_input:
-                self.console.print("[red]Name cannot be empty![/red]")
+                self.effects.display_error_message("Name cannot be empty!")
                 return
 
             try:
@@ -184,22 +321,22 @@ class InteractiveMenu:
                 self.console.print(f"[green]✓ Valid name: {name}[/green]")
                 break
             except ValueError as e:
-                self.console.print(f"[red]✗ {e}[/red]")
+                self.effects.display_error_message(f"Validation error: {e}")
                 retry = questionary.confirm("Try again?", style=self.custom_style).ask()
                 if not retry:
                     return
 
         phones: List[str] = []
-        # Add phone numbers
+        # Add phone numbers with enhanced UI
         while True:
             add_phone = questionary.confirm(
-                "Add phone number?", style=self.custom_style
+                "📱 Add phone number?", style=self.custom_style
             ).ask()
             if not add_phone:
                 break
 
             phone = questionary.text(
-                "Enter phone number (10 digits):", style=self.custom_style
+                "📞 Enter phone number (10 digits):", style=self.custom_style
             ).ask()
             if phone:
                 try:
@@ -207,27 +344,27 @@ class InteractiveMenu:
                     phone_obj = Phone(phone)
                     phones.append(phone_obj.value)  # Зберігаємо значення, а не об'єкт
                     self.console.print(
-                        f"[green]✓ Valid phone number: {phone_obj.value}[/green]"
+                        f"[green]✓ Valid number: {phone_obj.value}[/green]"
                     )
                 except ValueError as e:
-                    self.console.print(f"[red]✗ {e}[/red]")
+                    self.effects.display_error_message(f"Number validation error: {e}")
                     continue
 
             # Ask if user wants to add another phone
             if not questionary.confirm(
-                "Add another phone number?", style=self.custom_style
+                "📱 Add another number?", style=self.custom_style
             ).ask():
                 break
 
         birthday = None
-        # Add birthday
+        # Add birthday with enhanced UI
         add_birthday = questionary.confirm(
-            "Add birthday?", style=self.custom_style
+            "🎂 Add birthday?", style=self.custom_style
         ).ask()
         if add_birthday:
             while True:
                 birthday_input = questionary.text(
-                    "Enter birthday (DD.MM.YYYY):", style=self.custom_style
+                    "🗓️  Enter birthday (DD.MM.YYYY):", style=self.custom_style
                 ).ask()
                 if birthday_input:
                     try:
@@ -235,11 +372,13 @@ class InteractiveMenu:
                         birthday_obj = Birthday(birthday_input)
                         birthday = birthday_obj.value
                         self.console.print(
-                            f"[green]✓ Valid birthday: {birthday_obj.value}[/green]"
+                            f"[green]✓ Valid date: {birthday_obj.value}[/green]"
                         )
                         break
                     except ValueError as e:
-                        self.console.print(f"[red]✗ {e}[/red]")
+                        self.effects.display_error_message(
+                            f"Date validation error: {e}"
+                        )
                         retry = questionary.confirm(
                             "Try again?", style=self.custom_style
                         ).ask()
@@ -248,27 +387,40 @@ class InteractiveMenu:
                 else:
                     break
 
+        # Показываем анимацию сохранения
+        self.effects.display_loading_animation("Saving contact...", 1.2)
+
         # Add the contact
         result = self.operations.add_contact(name, phones if phones else None, birthday)
 
         if result["success"]:
-            self.console.print(f"[green]{result['message']}[/green]")
+            self.effects.display_success_message(
+                f"Contact '{name}' successfully added to database!"
+            )
+            self.effects.display_celebration_animation()
         else:
-            self.console.print(f"[red]{result['message']}[/red]")
+            self.effects.display_error_message(
+                f"Error adding contact: {result['message']}"
+            )
 
     def add_note(self) -> None:
-        """Add a new note with tags."""
-        self.console.print("[bold green]Adding New Note[/bold green]")
-        self.console.print()
+        """Add a new note with tags and enhanced visual effects."""
+        self.effects.create_gradient_rule("✨ ADDING NEW NOTE ✨")
 
-        title = questionary.text("Enter note title:", style=self.custom_style).ask()
+        # Loading form animation
+        self.effects.display_loading_animation("Preparing form...", 0.3)
+
+        title = questionary.text("📝 Enter note title:", style=self.custom_style).ask()
         if not title:
-            self.console.print("[red]Title cannot be empty![/red]")
+            self.effects.display_error_message("Title cannot be empty!")
             return
 
-        content = questionary.text("Enter note content:", style=self.custom_style).ask()
+        content = questionary.text(
+            "📄 Enter note content:", style=self.custom_style
+        ).ask()
+
         tags_input = questionary.text(
-            "Enter tags (comma-separated):", style=self.custom_style
+            "🏷️  Enter tags (comma-separated):", style=self.custom_style
         ).ask()
 
         tags = (
@@ -277,12 +429,20 @@ class InteractiveMenu:
             else []
         )
 
+        # Show saving animation
+        self.effects.display_loading_animation("Saving note...", 0.5)
+
         result = self.operations.add_note(title, content or "", tags)
 
         if result["success"]:
-            self.console.print(f"[green]{result['message']}[/green]")
+            self.effects.display_success_message(
+                f"Note '{title}' successfully created!"
+            )
+            self.effects.display_celebration_animation()
         else:
-            self.console.print(f"[red]{result['message']}[/red]")
+            self.effects.display_error_message(
+                f"Error creating note: {result['message']}"
+            )
 
     def view_contact_details(self) -> None:
         """View detailed information about a contact."""
@@ -738,9 +898,7 @@ class InteractiveMenu:
 
             # Start custom chat loop
             while True:
-                user_input = questionary.text(
-                    "Enter your command:", style=self.custom_style
-                ).ask()
+                user_input = questionary.text("You:", style=self.custom_style).ask()
                 if not user_input or user_input.strip().lower() in [
                     "back",
                     "exit",
@@ -808,8 +966,18 @@ class InteractiveMenu:
             elif choice == "👁️  View Contact Details":
                 self.view_contact_details()
             elif choice == "🎂 Upcoming Birthdays":
-                upcoming = self.operations.get_upcoming_birthdays()
-                self.console.print(f"\n[bold cyan]Upcoming Birthdays:[/bold cyan]")
+                days_input = questionary.text(
+                    "Show birthdays in how many days? (default: 7)",
+                    style=self.custom_style,
+                ).ask()
+                try:
+                    days = int(days_input) if days_input and int(days_input) > 0 else 7
+                except Exception:
+                    days = 7
+                upcoming = self.operations.get_upcoming_birthdays(days)
+                self.console.print(
+                    f"\n[bold cyan]Upcoming Birthdays (next {days} days):[/bold cyan]"
+                )
                 if upcoming:
                     # Convert upcoming birthdays to records for display
                     upcoming_records = []
@@ -950,29 +1118,38 @@ class InteractiveMenu:
         input("\nPress Enter to continue...")
 
     def run(self) -> None:
-        """Main application loop."""
+        """Головний цикл додатку з покращеними візуальними ефектами."""
         while True:
             self.console.clear()
             self.display_welcome()
 
+            # Используем визуальные эффекты для отображения меню
+            menu_options = [
+                "📞 Manage Contacts",
+                "📝 Manage Notes",
+                "🔍 Global Search",
+                "📊 Statistics",
+                "🤖 AI Assistant",
+                "🚪 Exit",
+            ]
+
             choice = questionary.select(
-                "What would you like to do?",
-                choices=[
-                    "📞 Manage Contacts",
-                    "📝 Manage Notes",
-                    "🔍 Global Search",
-                    "📊 Statistics",
-                    "🤖 AI Assistant",
-                    "🚪 Exit",
-                ],
+                "🌟 What would you like to do?",
+                choices=menu_options,
                 style=self.custom_style,
             ).ask()
 
             if choice == "🚪 Exit":
-                self.console.print(
-                    "\n[bold green]Thank you for using Personal Assistant![/bold green]"
+                # Красиве прощання з анімацією
+                self.effects.display_loading_animation("Shutting down...", 0.3)
+                goodbye_msg = self.effects.create_rainbow_text(
+                    "Thank you for using CLI Assistant!"
                 )
-                self.console.print("[cyan]Goodbye! 👋[/cyan]")
+                self.console.print(Align.center(goodbye_msg))
+                self.effects.display_celebration_animation()
+                self.console.print(
+                    Align.center(Text("Goodbye! 👋✨", style="bold bright_yellow"))
+                )
                 break
             elif choice == "📞 Manage Contacts":
                 self.contacts_menu()
@@ -987,16 +1164,22 @@ class InteractiveMenu:
 
 
 def main() -> None:
-    """Main function for interactive menu."""
+    """Main function for interactive menu with enhanced error handling."""
     try:
         app = InteractiveMenu()
         app.run()
     except KeyboardInterrupt:
-        print("\n\nApplication interrupted by user.")
-        print("Goodbye! 👋")
+        console = Console()
+        effects = EnhancedVisualEffects(console)
+        console.clear()
+        effects.display_info_message(
+            "Application interrupted by user.\nGoodbye! 👋✨", "PROGRAM INTERRUPTION"
+        )
     except Exception as e:
-        print(f"\nAn error occurred: {e}")
-        print("Goodbye! 👋")
+        console = Console()
+        effects = EnhancedVisualEffects(console)
+        console.clear()
+        effects.display_error_message(f"An error occurred: {e}\nGoodbye! 👋")
 
 
 if __name__ == "__main__":

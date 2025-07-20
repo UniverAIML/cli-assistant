@@ -44,6 +44,12 @@ setup(
         "questionary>=2.0.0,<3.0.0",
         "rich>=13.0.0,<14.0.0",
         "tabulate>=0.9.0,<1.0.0",
+        # Visual effects dependencies
+        "textual>=0.60.0,<1.0.0",
+        "pyfiglet>=0.8.0,<1.0.0",
+        "halo>=0.0.31",
+        "tqdm>=4.66.0",
+        "art>=5.9,<6.0.0",
     ],
     extras_require={
         "dev": [
