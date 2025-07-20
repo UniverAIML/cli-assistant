@@ -11,7 +11,15 @@ import logging
 import os
 import platform
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any, Dict, Optional
+
+from dotenv import load_dotenv
+
+# Завантажуємо змінні з .env файлу
+env_path = Path(__file__).parent.parent / ".env"
+if env_path.exists():
+    load_dotenv(env_path)
 
 
 @dataclass
