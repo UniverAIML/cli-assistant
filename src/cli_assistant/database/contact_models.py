@@ -453,7 +453,11 @@ class AddressBook(UserDict[str, Record]):
             days: Кількість днів для перегляду вперед (за замовчуванням 7)
 
         Returns:
-            List[Dict[str, str]]: Список словників з інформацією про дні народження
+            List[Dict[str, str]]: Список словників з інформацією про дні народження.
+            Кожен словник містить:
+            - name: ім'я контакту
+            - birthday_date: оригінальна дата дня народження (YYYY.MM.DD)
+            - congratulation_date: дата для привітання (YYYY.MM.DD, з урахуванням переносу вихідних)
         """
         upcoming_birthdays: List[Dict[str, str]] = []
         today = date.today()
@@ -469,7 +473,8 @@ class AddressBook(UserDict[str, Record]):
                 if 0 <= days_until_birthday <= days:
                     congratulation_date = birthday_this_year
                     if birthday_this_year.weekday() >= 5:  # 5 = субота, 6 = неділя
-                        days_until_monday = days - birthday_this_year.weekday()
+                        # Переносимо на наступний понеділок
+                        days_until_monday = 7 - birthday_this_year.weekday()
                         congratulation_date = birthday_this_year + timedelta(
                             days=days_until_monday
                         )
@@ -477,6 +482,9 @@ class AddressBook(UserDict[str, Record]):
                     upcoming_birthdays.append(
                         {
                             "name": record.name.value,
+                            "birthday_date": birthday_this_year.strftime(
+                                "%Y.%m.%d"
+                            ),
                             "congratulation_date": congratulation_date.strftime(
                                 "%Y.%m.%d"
                             ),
