@@ -3,73 +3,74 @@ Interactive table with search, sort, and mouse navigation support.
 Uses Textual for advanced terminal UI with mouse support.
 """
 
-from typing import List, Dict, Any, Optional, Callable
+from typing import Any, Callable, Dict, List, Optional
+
+from rich.console import Console
+from rich.text import Text
 from textual.app import App, ComposeResult
 from textual.containers import Container, Horizontal, Vertical
-from textual.widgets import DataTable, Input, Button, Header, Footer, Label
 from textual.screen import Screen
-from rich.text import Text
-from rich.console import Console
+from textual.widgets import Button, DataTable, Footer, Header, Input, Label
 
 
 class InteractiveTableScreen(Screen):
     """Interactive table screen with search and sort functionality."""
-    
+
     def __init__(self, title: str, data: List[Dict[str, Any]], columns: List[str]):
         super().__init__()
         self.title = title
         self.original_data = data
         self.filtered_data = data.copy()
         self.columns = columns
-        self.sort_column = None
+        self.sort_column: Optional[str] = None
         self.sort_reverse = False
-        
+
     def compose(self) -> ComposeResult:
         """Compose the UI layout."""
         yield Header(show_clock=True)
-        
+
         with Container(id="main"):
             yield Label(f"📊 {self.title}", id="title")
-            
+
             with Horizontal(id="controls"):
                 yield Input(placeholder="🔍 Search...", id="search_input")
                 yield Button("Clear", id="clear_btn")
                 yield Button("Exit", id="exit_btn", variant="primary")
-            
+
             yield DataTable(id="data_table", cursor_type="row")
-            
+
             with Horizontal(id="stats"):
                 yield Label("", id="stats_label")
-        
+
         yield Footer()
-    
+
     def on_mount(self) -> None:
         """Initialize the table when screen mounts."""
         table = self.query_one("#data_table", DataTable)
-        
+
         # Add columns
         for col in self.columns:
             table.add_column(col, key=col)
-        
+
         # Populate initial data
         self.update_table()
         self.update_stats()
-        
+
         # Focus search input
         self.query_one("#search_input", Input).focus()
-    
+
     def update_table(self) -> None:
         """Update table with current filtered data."""
         table = self.query_one("#data_table", DataTable)
         table.clear()
-        
+
         # Sort data if needed
-        if self.sort_column:
+        if self.sort_column is not None:
+            sort_key = str(self.sort_column)
             self.filtered_data.sort(
-                key=lambda x: str(x.get(self.sort_column, "")),
-                reverse=self.sort_reverse
+                key=lambda x: str(x.get(sort_key, "")), reverse=self.sort_reverse
             )
-        
+
         # Add rows
         for row_data in self.filtered_data:
             row_values = []
@@ -78,25 +79,25 @@ class InteractiveTableScreen(Screen):
                 if isinstance(value, list):
                     value = ", ".join(str(v) for v in value)
                 row_values.append(str(value))
-            
+
             table.add_row(*row_values)
-    
+
     def update_stats(self) -> None:
         """Update statistics label."""
         stats_label = self.query_one("#stats_label", Label)
         total = len(self.original_data)
         filtered = len(self.filtered_data)
-        
+
         if filtered == total:
             stats_label.update(f"📈 Total: {total} items")
         else:
             stats_label.update(f"📈 Showing: {filtered} of {total} items")
-    
+
     def on_input_changed(self, event: Input.Changed) -> None:
         """Handle search input changes."""
         if event.input.id == "search_input":
             search_term = event.value.lower().strip()
-            
+
             if not search_term:
                 self.filtered_data = self.original_data.copy()
             else:
@@ -110,13 +111,16 @@ class InteractiveTableScreen(Screen):
                         elif isinstance(value, list):
                             # Search in list items
                             for list_item in value:
-                                if isinstance(list_item, str) and search_term in str(list_item).lower():
+                                if (
+                                    isinstance(list_item, str)
+                                    and search_term in str(list_item).lower()
+                                ):
                                     self.filtered_data.append(item)
                                     break
-            
+
             self.update_table()
             self.update_stats()
-    
+
     def on_button_pressed(self, event: Button.Pressed) -> None:
         """Handle button presses."""
         if event.button.id == "clear_btn":
@@ -127,36 +131,37 @@ class InteractiveTableScreen(Screen):
             self.update_stats()
         elif event.button.id == "exit_btn":
             self.app.exit()
-    
+
     def on_data_table_header_selected(self, event: DataTable.HeaderSelected) -> None:
         """Handle column header clicks for sorting."""
         column_key = event.column_key
-        
+
         # Get column name from ColumnKey object
-        column_name = str(column_key) if hasattr(column_key, '__str__') else column_key
-        if hasattr(column_key, 'value'):
+        if hasattr(column_key, "value"):
             column_name = column_key.value
-        elif hasattr(column_key, 'key'):
-            column_name = column_key.key
-        
+        else:
+            column_name = str(column_key)
+
         # Toggle sort direction if same column
         if self.sort_column == column_name:
             self.sort_reverse = not self.sort_reverse
         else:
             self.sort_column = column_name
             self.sort_reverse = False
-        
+
         self.update_table()
-        
+
         # Show sort indicator in title
         sort_indicator = "↓" if self.sort_reverse else "↑"
         title_label = self.query_one("#title", Label)
-        title_label.update(f"📊 {self.title} (Sorted by {column_name} {sort_indicator})")
+        title_label.update(
+            f"📊 {self.title} (Sorted by {column_name} {sort_indicator})"
+        )
 
 
 class InteractiveTableApp(App):
     """Textual app for interactive tables."""
-    
+
     CSS = """
     #main {
         padding: 1;
@@ -204,16 +209,18 @@ class InteractiveTableApp(App):
         color: cyan;
     }
     """
-    
+
     def __init__(self, title: str, data: List[Dict[str, Any]], columns: List[str]):
         super().__init__()
         self.table_title = title
         self.table_data = data
         self.table_columns = columns
-    
+
     def on_mount(self) -> None:
         """Mount the interactive table screen."""
-        screen = InteractiveTableScreen(self.table_title, self.table_data, self.table_columns)
+        screen = InteractiveTableScreen(
+            self.table_title, self.table_data, self.table_columns
+        )
         self.push_screen(screen)
 
 
@@ -234,30 +241,32 @@ def show_interactive_notes_table(notes_data: List[Dict[str, Any]]) -> None:
 # Mouse-enabled menu for main navigation
 class InteractiveMenuScreen(Screen):
     """Interactive menu with mouse support."""
-    
+
     def __init__(self, title: str, options: List[str], callbacks: List[Callable]):
         super().__init__()
         self.title = title
         self.options = options
         self.callbacks = callbacks
-    
+
     def compose(self) -> ComposeResult:
         """Compose menu layout."""
         yield Header(show_clock=True)
-        
+
         with Container(id="menu_main"):
             yield Label(f"🌟 {self.title} 🌟", id="menu_title")
-            
+
             with Vertical(id="menu_options"):
                 for i, option in enumerate(self.options):
-                    yield Button(f"{i+1}. {option}", id=f"option_{i}", variant="default")
-        
+                    yield Button(
+                        f"{i+1}. {option}", id=f"option_{i}", variant="default"
+                    )
+
         yield Footer()
-    
+
     def on_button_pressed(self, event: Button.Pressed) -> None:
         """Handle menu option selection."""
         button_id = event.button.id
-        if button_id.startswith("option_"):
+        if button_id != None and button_id.startswith("option_"):
             option_index = int(button_id.split("_")[1])
             if option_index < len(self.callbacks):
                 self.app.exit()  # Exit the menu
@@ -267,7 +276,7 @@ class InteractiveMenuScreen(Screen):
 
 class MouseEnabledMenuApp(App):
     """Mouse-enabled menu application."""
-    
+
     CSS = """
     #menu_main {
         padding: 2;
@@ -293,16 +302,18 @@ class MouseEnabledMenuApp(App):
         height: 3;
     }
     """
-    
+
     def __init__(self, title: str, options: List[str], callbacks: List[Callable]):
         super().__init__()
         self.menu_title = title
         self.menu_options = options
         self.menu_callbacks = callbacks
-    
+
     def on_mount(self) -> None:
         """Mount the menu screen."""
-        screen = InteractiveMenuScreen(self.menu_title, self.menu_options, self.menu_callbacks)
+        screen = InteractiveMenuScreen(
+            self.menu_title, self.menu_options, self.menu_callbacks
+        )
         self.push_screen(screen)
 
 
