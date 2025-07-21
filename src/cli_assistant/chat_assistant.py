@@ -7,8 +7,6 @@ import json
 import re
 from typing import Any, Dict, List, Optional
 
-from colorama import Fore, Style
-
 from .config_manager import LoggerMixin
 
 # Локальні імпорти компонентів системи

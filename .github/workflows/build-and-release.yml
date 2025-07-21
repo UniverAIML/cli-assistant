@@ -142,7 +142,6 @@ jobs:
             --workpath "build/temp" \
             --specpath "build/specs" \
             --icon "$(pwd)/src/cli_assistant/icon.ico" \
-            --hidden-import=colorama \
             --hidden-import=openai \
             --hidden-import=questionary \
             --hidden-import=rich \
@@ -179,7 +178,6 @@ jobs:
             --specpath "build/specs" \
             $ICON_FLAG \
             $EXTRA_FLAGS \
-            --hidden-import=colorama \
             --hidden-import=openai \
             --hidden-import=questionary \
             --hidden-import=rich \

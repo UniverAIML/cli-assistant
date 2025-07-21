@@ -41,7 +41,6 @@ pyinstaller --onefile ^
     --workpath build\temp ^
     --specpath build\specs ^
     --icon %cd%\src\cli_assistant\icon.ico ^
-    --hidden-import=colorama ^
     --hidden-import=openai ^
     --hidden-import=questionary ^
     --hidden-import=rich ^

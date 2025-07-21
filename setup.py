@@ -40,7 +40,6 @@ setup(
     python_requires=">=3.9,<3.14",
     install_requires=[
         "openai>=1.97.0,<2.0.0",
-        "colorama>=0.4.6,<0.5.0",
         "questionary>=2.0.0,<3.0.0",
         "rich>=13.0.0,<14.0.0",
         "tabulate>=0.9.0,<1.0.0",
@@ -59,7 +58,6 @@ setup(
             "isort>=5.13.0",
             "flake8>=7.0.0",
             "mypy>=1.8.0",
-            "types-colorama>=0.4.15.20240311",
         ],
     },
     entry_points={

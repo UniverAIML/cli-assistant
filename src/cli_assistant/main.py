@@ -6,11 +6,6 @@
 import sys
 from typing import List, Optional
 
-# Ініціалізуємо colorama для кросплатформенного кольорового виводу
-from colorama import init
-
-init(autoreset=True)
-
 # Локальні імпорти компонентів нашого додатку
 try:
     # Для звичайного запуску
