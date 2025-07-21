@@ -299,9 +299,16 @@ class FunctionExecutor:
 
         result_text = f"🎂 Upcoming birthdays ({len(upcoming)} found):\\n"
         for birthday_info in upcoming:
-            result_text += (
-                f"• {birthday_info['name']} - {birthday_info['congratulation_date']}\\n"
-            )
+            name = birthday_info["name"]
+            birthday_date = birthday_info.get("birthday_date", "")
+            congratulation_date = birthday_info["congratulation_date"]
+
+            if birthday_date and birthday_date != congratulation_date:
+                # Показуємо обидві дати якщо вони різні (день народження перенесено)
+                result_text += f"• {name} - Birthday: {birthday_date}, Congratulation: {congratulation_date}\\n"
+            else:
+                # Показуємо тільки дату привітання якщо вони однакові
+                result_text += f"• {name} - {congratulation_date}\\n"
 
         return FunctionResult(True, result_text)
 
