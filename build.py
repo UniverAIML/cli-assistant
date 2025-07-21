@@ -87,7 +87,6 @@ a = Analysis(
         'rich.console',
         'rich.table',
         'rich.panel',
-        'colorama',
         'tabulate',
         # Visual effects dependencies
         'textual',

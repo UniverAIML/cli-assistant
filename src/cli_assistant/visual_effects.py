@@ -11,7 +11,6 @@ from typing import List, Optional
 
 import pyfiglet  # type: ignore
 from art import text2art  # type: ignore
-from colorama import Back, Fore, Style
 from halo import Halo  # type: ignore
 from rich import box
 from rich.align import Align

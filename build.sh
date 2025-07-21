@@ -77,7 +77,6 @@ poetry run pyinstaller --onefile \
     --distpath "dist/executables" \
     --workpath "build/temp" \
     --specpath "build/specs" \
-    --hidden-import=colorama \
     --hidden-import=openai \
     --hidden-import=questionary \
     --hidden-import=rich \
